@@ -1,108 +1,83 @@
-/* ===================================
-   LA MIA LIBRERIA
-   Scanner ISBN
-=================================== */
-
-
-let scanner;
-
+let scanner = null;
 
 
 function avviaScanner(){
 
-
-const area =
-document.getElementById(
-"scanner"
-);
+    const area =
+    document.getElementById("scanner");
 
 
-
-area.innerHTML =
-`
-<div id="lettore">
-</div>
-`;
+    if(!area){
+        alert("Area scanner non trovata");
+        return;
+    }
 
 
-
-scanner =
-new Html5Qrcode(
-"lettore"
-);
+    area.innerHTML =
+    "<div id='lettore'></div>";
 
 
-
-scanner.start(
-
-{
-facingMode:"environment"
-},
-
-{
-fps:10,
-
-qrbox:
-{
-width:250,
-height:120
-}
-
-},
+    scanner =
+    new Html5Qrcode("lettore");
 
 
-(codice)=>{
+    scanner.start(
+
+        {
+            facingMode:"environment"
+        },
+
+        {
+            fps:10,
+            qrbox:250
+        },
 
 
-document
-.getElementById("isbn")
-.value =
-codice;
+        codice => {
 
 
-
-fermaScanner();
-
-
-
-cercaISBN();
+            document
+            .getElementById("isbn")
+            .value = codice;
 
 
-},
+            fermaScanner();
 
 
-(error)=>{
+            cercaISBN();
 
+
+        },
+
+
+        errore => {
+
+        }
+
+    )
+    .catch(err=>{
+
+        alert(
+        "Impossibile attivare la fotocamera. Controllare i permessi."
+        );
+
+    });
 
 }
-
-);
-
-
-
-}
-
-
 
 
 
 function fermaScanner(){
 
+    if(scanner){
 
-if(scanner){
+        scanner.stop()
+        .then(()=>{
 
+            scanner.clear();
 
-scanner.stop()
-.then(()=>{
+        });
 
-
-scanner.clear();
-
-
-});
-
-
-}
-
+    }
 
 }

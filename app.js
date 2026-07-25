@@ -35,7 +35,12 @@ async function(){
         salvaLibro
     );
 
-
+document
+.getElementById("avviaScanner")
+.addEventListener(
+"click",
+avviaScanner
+);
 
     document
     .getElementById("ricerca")
