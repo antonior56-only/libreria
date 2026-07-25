@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN - versione 1.6
+   Ricerca ISBN - versione 1.7
    Quattro strategie in cascata + diagnostica visibile
 =================================== */
 
@@ -368,6 +368,19 @@ async function recuperaDatiIsbn(isbn){
 
 
 
+function dettaglio(messaggio){
+
+
+    const parti = String(messaggio).split(" — ");
+
+
+    return parti.length > 1 ? "[" + parti.slice(1).join(" — ") + "]" : "";
+
+
+}
+
+
+
 function spiegaErrore(errore){
 
 
@@ -391,7 +404,37 @@ function spiegaErrore(errore){
 
     if(messaggio.includes("403")){
 
-        return "accesso negato dal servizio (403)";
+
+        if(messaggio.includes("referer")){
+
+            return "403 — la chiave rifiuta questo sito: " +
+            "controlla la restrizione «Siti web» nella console Google. " +
+            dettaglio(messaggio);
+
+        }
+
+
+        if(
+            messaggio.includes("has not been used") ||
+            messaggio.includes("is disabled") ||
+            messaggio.includes("accessNotConfigured")
+        ){
+
+            return "403 — Books API non abilitata su questo progetto. " +
+            dettaglio(messaggio);
+
+        }
+
+
+        return "403 accesso negato. " + dettaglio(messaggio);
+
+
+    }
+
+
+    if(messaggio.includes("400")){
+
+        return "400 — chiave non valida o malformata. " + dettaglio(messaggio);
 
     }
 
@@ -404,6 +447,53 @@ function spiegaErrore(errore){
 
 
     return messaggio;
+
+
+}
+
+
+
+
+
+
+// LETTURA DEL MOTIVO REALE DELL'ERRORE
+
+
+async function descriviRisposta(risposta){
+
+
+    let dettaglio = "";
+
+
+    try {
+
+
+        const corpo = await risposta.json();
+
+
+        dettaglio =
+        (corpo && corpo.error && corpo.error.message)
+        ? String(corpo.error.message)
+        : "";
+
+
+    }
+    catch(errore){
+
+        dettaglio = "";
+
+    }
+
+
+    if(dettaglio.length > 200){
+
+        dettaglio = dettaglio.slice(0, 200) + "...";
+
+    }
+
+
+    return "HTTP " + risposta.status +
+    (dettaglio ? " — " + dettaglio : "");
 
 
 }
@@ -440,7 +530,7 @@ async function google(interrogazione){
 
     if(!risposta.ok){
 
-        throw new Error("HTTP " + risposta.status);
+        throw new Error(await descriviRisposta(risposta));
 
     }
 
@@ -530,7 +620,7 @@ async function openLibraryDati(isbn){
 
     if(!risposta.ok){
 
-        throw new Error("HTTP " + risposta.status);
+        throw new Error(await descriviRisposta(risposta));
 
     }
 
@@ -602,7 +692,7 @@ async function openLibraryRicerca(isbn){
 
     if(!risposta.ok){
 
-        throw new Error("HTTP " + risposta.status);
+        throw new Error(await descriviRisposta(risposta));
 
     }
 
