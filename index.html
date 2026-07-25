@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>La Mia Libreria</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#2c3e50">
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<h1>📚 La Mia Libreria</h1>
+
+<p>La tua biblioteca personale digitale</p>
+
+</header>
+
+
+
+<main>
+
+
+
+<!-- DASHBOARD -->
+
+<section id="dashboard">
+
+
+<div class="stat-card">
+<span id="totaleLibri">0</span>
+<small>Libri totali</small>
+</div>
+
+
+<div class="stat-card">
+<span id="libriLetti">0</span>
+<small>Letti</small>
+</div>
+
+
+<div class="stat-card">
+<span id="libriDaLeggere">0</span>
+<small>Da leggere</small>
+</div>
+
+
+<div class="stat-card">
+<span id="libriLettura">0</span>
+<small>In lettura</small>
+</div>
+
+
+</section>
+
+
+
+
+<!-- STRUMENTI -->
+
+
+<section class="box">
+
+
+<h2>⚙ Strumenti</h2>
+
+
+<button id="esportaBackup">
+📤 Esporta biblioteca
+</button>
+
+
+<br><br>
+
+
+<input 
+type="file"
+id="importaBackup"
+accept=".json"
+>
+
+
+</section>
+
+
+
+
+
+<!-- RICERCA E ORDINE -->
+
+
+<section class="box">
+
+
+<h2>🔍 Cerca</h2>
+
+
+<input 
+id="ricerca"
+type="search"
+placeholder="Titolo, autore, genere..."
+>
+
+
+<label>
+Ordina per
+</label>
+
+
+<select id="ordinamento">
+
+
+<option value="titolo">
+Titolo A-Z
+</option>
+
+
+<option value="autore">
+Autore A-Z
+</option>
+
+
+<option value="voto">
+Valutazione
+</option>
+
+
+<option value="data">
+Ultimi inseriti
+</option>
+
+
+</select>
+
+
+
+</section>
+
+
+
+
+
+
+<!-- LISTA LIBRI -->
+
+
+<section class="box">
+
+
+<h2>📖 I miei libri</h2>
+
+
+<div id="listaLibri">
+
+<p>Nessun libro inserito</p>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<!-- FORM LIBRO -->
+
+
+<section class="box">
+
+
+<h2>➕ Aggiungi libro</h2>
+
+
+
+<label>
+Copertina (URL immagine)
+</label>
+
+
+<input 
+id="copertina"
+type="url"
+placeholder="https://..."
+>
+
+
+
+
+<label>
+Titolo *
+</label>
+
+
+<input 
+id="titolo"
+type="text"
+>
+
+
+
+
+<label>
+Autore
+</label>
+
+
+<input 
+id="autore"
+type="text"
+>
+
+
+
+
+<label>
+Genere
+</label>
+
+
+<select id="genere">
+
+
+<option>Narrativa</option>
+
+<option>Giallo</option>
+
+<option>Thriller</option>
+
+<option>Storico</option>
+
+<option>Fantascienza</option>
+
+<option>Saggio</option>
+
+<option>Biografia</option>
+
+<option>Altro</option>
+
+
+</select>
+
+
+
+
+
+<label>
+Anno pubblicazione
+</label>
+
+
+<input 
+id="anno"
+type="number"
+>
+
+
+
+
+<label>
+ISBN
+</label>
+
+<input 
+id="isbn"
+type="text"
+placeholder="Inserisci ISBN"
+>
+<label>
+ISBN
+</label>
+
+<input 
+id="isbn"
+type="text"
+placeholder="Inserisci ISBN"
+>
+
+
+<button id="cercaISBN">
+📚 Cerca libro
+</button>
+
+
+<button id="avviaScanner">
+📷 Scansiona ISBN
+</button>
+
+
+<div id="scanner">
+
+</div>
+
+<button id="cercaISBN">
+📚 Cerca libro
+</button>
+
+
+
+
+<label>
+Stato lettura
+</label>
+
+
+<select id="stato">
+
+
+<option>Da leggere</option>
+
+<option>In lettura</option>
+
+<option>Letto</option>
+
+<option>Abbandonato</option>
+
+
+</select>
+
+
+
+
+
+<label>
+Valutazione
+</label>
+
+
+<select id="voto">
+
+
+<option value="1">⭐</option>
+
+<option value="2">⭐⭐</option>
+
+<option value="3">⭐⭐⭐</option>
+
+<option value="4">⭐⭐⭐⭐</option>
+
+<option value="5">⭐⭐⭐⭐⭐</option>
+
+
+</select>
+
+
+
+
+
+<h3>📍 Posizione libro</h3>
+
+
+<label>
+Stanza
+</label>
+
+
+<input id="stanza" type="text">
+
+
+
+<label>
+Libreria
+</label>
+
+
+<input id="libreria" type="text">
+
+
+
+<label>
+Scaffale
+</label>
+
+
+<input id="scaffale" type="text">
+
+
+
+
+
+<label>
+Note personali
+</label>
+
+
+<textarea id="note"></textarea>
+
+
+
+
+<button id="salvaLibro">
+
+💾 Salva libro
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- STATISTICHE -->
+
+
+<section class="box">
+
+
+<h2>📊 Statistiche</h2>
+
+
+<div id="statistiche">
+
+Nessun dato disponibile
+
+</div>
+
+
+</section>
+
+
+
+
+</main>
+
+
+
+
+<footer>
+
+<p>
+La Mia Libreria © 2026
+</p>
+
+</footer>
+
+
+
+
+<script src="database.js"></script>
+
+<script src="js/isbn.js"></script>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script src="js/scanner.js"></script>
+
+<script src="app.js"></script>
+
+
+</body>
+
+</html>
