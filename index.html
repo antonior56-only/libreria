@@ -430,6 +430,33 @@ L'importazione unisce: se un libro ha lo stesso ISBN di uno già presente,
 viene aggiornato invece di essere duplicato.
 </p>
 
+<h3>🔑 Chiave Google Books</h3>
+
+<p class="contatore">
+Google blocca le ricerche senza chiave personale (errore 429). La chiave è
+gratuita e resta salvata <strong>solo su questo dispositivo</strong>:
+non finisce nel codice pubblicato.
+</p>
+
+<input
+type="text"
+id="chiaveGoogle"
+autocomplete="off"
+spellcheck="false"
+placeholder="Incolla qui la chiave"
+>
+
+<button type="button" id="salvaChiave">
+💾 Salva chiave
+</button>
+
+<button type="button" id="provaChiave" class="btn-secondario">
+🔍 Prova la chiave
+</button>
+
+<p id="statoChiave" class="contatore"></p>
+
+
 <h3>🖼 Copertine</h3>
 
 <p class="contatore">

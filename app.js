@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 1.4
+   app.js versione 1.5
 =================================== */
 
 
@@ -83,6 +83,11 @@ document.addEventListener("DOMContentLoaded", async function(){
     ascolta("backupOra",     "click",  function(){ esportaBackup(); });
     ascolta("backupDopo",    "click",  rinviaPromemoriaBackup);
     ascolta("scaricaCopertine","click", scaricaCopertineMancanti);
+    ascolta("salvaChiave",   "click",  salvaChiaveGoogle);
+    ascolta("provaChiave",   "click",  provaChiaveGoogle);
+
+
+    mostraStatoChiave();
 
 
 });
@@ -2177,6 +2182,127 @@ function aggiornaStatistiche(){
     }
 
     `;
+
+
+}
+
+
+
+
+
+
+// CHIAVE GOOGLE BOOKS
+
+
+function chiaveGoogle(){
+
+
+    return String(leggiPreferenza("chiaveGoogleBooks") || "").trim();
+
+
+}
+
+
+
+function salvaChiaveGoogle(){
+
+
+    const chiave = valore("chiaveGoogle");
+
+
+    scriviPreferenza("chiaveGoogleBooks", chiave);
+
+
+    mostraStatoChiave();
+
+
+    alert(
+        chiave
+        ? "Chiave salvata su questo dispositivo."
+        : "Chiave rimossa: le ricerche useranno solo Open Library."
+    );
+
+
+}
+
+
+
+function mostraStatoChiave(){
+
+
+    const stato = document.getElementById("statoChiave");
+
+    const campo = document.getElementById("chiaveGoogle");
+
+
+    if(!stato){
+
+        return;
+
+    }
+
+
+    const chiave = chiaveGoogle();
+
+
+    if(campo && chiave && !campo.value){
+
+        campo.value = chiave;
+
+    }
+
+
+    stato.textContent =
+    chiave
+    ? "Chiave presente (termina con " + chiave.slice(-4) + ")."
+    : "Nessuna chiave: Google Books verrà saltato, si userà solo Open Library.";
+
+
+}
+
+
+
+async function provaChiaveGoogle(){
+
+
+    const stato = document.getElementById("statoChiave");
+
+
+    if(!chiaveGoogle()){
+
+        stato.textContent =
+        "Prima incolla la chiave e premi «Salva chiave».";
+
+        return;
+
+    }
+
+
+    stato.textContent = "Prova in corso su un ISBN noto...";
+
+
+    try {
+
+
+        // Dune: presente con certezza nel catalogo Google
+        const dati = await google("q=isbn:9780441172719");
+
+
+        stato.textContent =
+        dati && dati.titolo
+        ? "✅ La chiave funziona (risposta: " + dati.titolo + ")."
+        : "⚠ La chiave risponde ma non ha restituito risultati.";
+
+
+    }
+    catch(errore){
+
+
+        stato.textContent =
+        "❌ La chiave non funziona: " + spiegaErrore(errore);
+
+
+    }
 
 
 }
