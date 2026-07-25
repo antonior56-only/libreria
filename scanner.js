@@ -1,6 +1,7 @@
 /* ===================================
    LA MIA LIBRERIA
-   Scanner codice a barre - versione 1.2
+   Scanner codice a barre - versione 1.4
+   Con modalità di scansione continua
 =================================== */
 
 
@@ -8,13 +9,18 @@ let scanner = null;
 
 let scannerAttivo = false;
 
+let modalitaContinua = false;
+
+let ultimoCodice = "";
+
+let ultimaLettura = 0;
+
 
 
 async function avviaScanner(){
 
 
-    const area =
-    document.getElementById("scanner");
+    const area = document.getElementById("scanner");
 
 
     if(!area){
@@ -27,7 +33,6 @@ async function avviaScanner(){
 
 
 
-    // secondo click = chiusura
     if(scannerAttivo){
 
         await fermaScanner();
@@ -62,8 +67,22 @@ async function avviaScanner(){
 
 
 
+    const interruttore =
+    document.getElementById("scansioneContinua");
+
+
+    modalitaContinua = Boolean(interruttore && interruttore.checked);
+
+
+    ultimoCodice = "";
+
+    ultimaLettura = 0;
+
+
+
     area.innerHTML =
     "<div id='lettore'></div>" +
+    "<p id='esitoLettura' class='esito-lettura'></p>" +
     "<button type='button' id='chiudiScanner' class='btn-secondario'>" +
     "✖ Chiudi scanner</button>";
 
@@ -73,7 +92,6 @@ async function avviaScanner(){
 
 
 
-    // limita ai formati usati dai libri: più veloce e più preciso
     const configurazione = {};
 
 
@@ -99,40 +117,16 @@ async function avviaScanner(){
 
         await scanner.start(
 
-            {
-                facingMode: "environment"
-            },
+            { facingMode: "environment" },
 
             {
                 fps: 10,
-                // rettangolare: i codici a barre sono larghi e bassi
                 qrbox: { width: 260, height: 140 }
             },
 
-            async function(codice){
+            gestisciLettura,
 
-
-                document.getElementById("isbn")
-                .value = codice;
-
-
-                await fermaScanner();
-
-
-                if(typeof cercaISBN === "function"){
-
-                    cercaISBN();
-
-                }
-
-
-            },
-
-            function(){
-
-                // errori di lettura fotogramma: ignorati
-
-            }
+            function(){ }
 
         );
 
@@ -144,20 +138,121 @@ async function avviaScanner(){
         .textContent = "✖ Chiudi scanner";
 
 
+        if(modalitaContinua){
+
+            mostraEsito(
+            "Modalità continua attiva: inquadra un libro dopo l'altro."
+            );
+
+        }
+
+
     }
     catch(errore){
 
 
         console.error("Errore avvio scanner", errore);
 
-
         alert(
         "Impossibile attivare la fotocamera. Controlla i permessi del browser."
         );
 
+        await fermaScanner();
+
+
+    }
+
+
+}
+
+
+
+
+
+
+async function gestisciLettura(codice){
+
+
+    const adesso = Date.now();
+
+
+    // la libreria rilegge lo stesso codice molte volte al secondo
+    if(
+        codice === ultimoCodice &&
+        adesso - ultimaLettura < 3000
+    ){
+
+        return;
+
+    }
+
+
+    ultimoCodice = codice;
+
+    ultimaLettura = adesso;
+
+
+
+    if(!modalitaContinua){
+
+
+        const campo = document.getElementById("isbn");
+
+
+        if(campo){
+
+            campo.value = codice;
+
+        }
+
 
         await fermaScanner();
 
+
+        if(typeof cercaISBN === "function"){
+
+            cercaISBN();
+
+        }
+
+
+        return;
+
+
+    }
+
+
+
+    // modalità continua: il libro entra in coda e la fotocamera resta aperta
+    if(typeof aggiungiAllaCoda === "function"){
+
+
+        const aggiunto = aggiungiAllaCoda(codice);
+
+
+        mostraEsito(
+            aggiunto
+            ? "✅ " + codice + " aggiunto alla coda"
+            : "↺ " + codice + " già in coda o codice non valido"
+        );
+
+
+    }
+
+
+}
+
+
+
+function mostraEsito(testo){
+
+
+    const riga = document.getElementById("esitoLettura");
+
+
+    if(riga){
+
+        riga.textContent = testo;
 
     }
 
@@ -196,10 +291,11 @@ async function fermaScanner(){
 
     scannerAttivo = false;
 
+    modalitaContinua = false;
 
 
-    const area =
-    document.getElementById("scanner");
+
+    const area = document.getElementById("scanner");
 
 
     if(area){
@@ -210,8 +306,7 @@ async function fermaScanner(){
 
 
 
-    const bottone =
-    document.getElementById("avviaScanner");
+    const bottone = document.getElementById("avviaScanner");
 
 
     if(bottone){

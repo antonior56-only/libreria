@@ -25,8 +25,6 @@
 
 <h1>📚 La Mia Libreria</h1>
 
-<p>La tua biblioteca personale digitale</p>
-
 <button type="button" id="temaScuro" class="btn-tema">🌙 Tema scuro</button>
 
 </header>
@@ -37,137 +35,103 @@
 
 
 
-<!-- DASHBOARD -->
-
-<section id="dashboard">
+<!-- ============ VISTA LIBRERIA ============ -->
 
 
-<div class="stat-card">
-<span id="totaleLibri">0</span>
-<small>Libri totali</small>
+<section id="vistaLibreria">
+
+
+<div id="bannerBackup" class="banner" hidden>
+
+<p id="testoBackup"></p>
+
+<div class="banner-azioni">
+
+<button type="button" id="backupOra">📤 Esporta ora</button>
+
+<button type="button" id="backupDopo" class="btn-secondario">Più tardi</button>
+
+</div>
+
 </div>
 
 
-<div class="stat-card">
-<span id="libriLetti">0</span>
-<small>Letti</small>
-</div>
 
-
-<div class="stat-card">
-<span id="libriDaLeggere">0</span>
-<small>Da leggere</small>
-</div>
-
-
-<div class="stat-card">
-<span id="libriLettura">0</span>
-<small>In lettura</small>
-</div>
-
-
-</section>
-
-
-
-
-<!-- STRUMENTI -->
-
-
-<section class="box">
-
-
-<h2>⚙ Strumenti</h2>
-
-
-<button type="button" id="esportaBackup">
-📤 Esporta biblioteca
-</button>
-
-
-<br><br>
-
-
-<label for="importaBackup">
-Importa un backup (.json)
-</label>
-
-
-<input
-type="file"
-id="importaBackup"
-accept=".json,application/json"
->
-
-
-</section>
-
-
-
-
-
-<!-- RICERCA E ORDINE -->
-
-
-<section class="box">
-
-
-<h2>🔍 Cerca</h2>
+<div class="barra-ricerca">
 
 
 <input
 id="ricerca"
 type="search"
-placeholder="Titolo, autore, genere..."
+placeholder="Titolo, autore, genere, posizione..."
 >
 
 
-<label for="ordinamento">
-Ordina per
-</label>
+<div id="filtriStato" class="chip-riga">
 
+<button type="button" class="chip attivo" data-stato="">
+Tutti <span class="chip-conteggio">0</span>
+</button>
+
+<button type="button" class="chip" data-stato="Da leggere">
+Da leggere <span class="chip-conteggio">0</span>
+</button>
+
+<button type="button" class="chip" data-stato="In lettura">
+In lettura <span class="chip-conteggio">0</span>
+</button>
+
+<button type="button" class="chip" data-stato="Letto">
+Letti <span class="chip-conteggio">0</span>
+</button>
+
+<button type="button" class="chip" data-stato="Abbandonato">
+Abbandonati <span class="chip-conteggio">0</span>
+</button>
+
+<button type="button" class="chip" data-stato="__prestito">
+🤝 In prestito <span class="chip-conteggio">0</span>
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<div id="filtroPosizioneAttivo" class="filtro-attivo" hidden>
+
+<span id="etichettaPosizione"></span>
+
+<button type="button" id="rimuoviFiltroPosizione" class="btn-mini">✖</button>
+
+</div>
+
+
+
+<div class="riga-ordinamento">
+
+<label for="ordinamento">Ordina per</label>
 
 <select id="ordinamento">
 
+<option value="data">Ultimi inseriti</option>
 
-<option value="data">
-Ultimi inseriti
-</option>
+<option value="titolo">Titolo A-Z</option>
 
+<option value="autore">Autore A-Z</option>
 
-<option value="titolo">
-Titolo A-Z
-</option>
-
-
-<option value="autore">
-Autore A-Z
-</option>
-
-
-<option value="voto">
-Valutazione
-</option>
-
+<option value="voto">Valutazione</option>
 
 </select>
 
-
-
-</section>
-
+</div>
 
 
 
+<p id="contatoreRisultati" class="contatore"></p>
 
-
-<!-- LISTA LIBRI -->
-
-
-<section class="box">
-
-
-<h2>📖 I miei libri</h2>
 
 
 <div id="listaLibri">
@@ -184,19 +148,20 @@ Valutazione
 
 
 
-<!-- FORM LIBRO -->
+<!-- ============ VISTA AGGIUNGI ============ -->
 
 
-<section class="box" id="formLibro">
+<section id="vistaAggiungi" hidden>
 
 
-<h2>➕ Aggiungi libro</h2>
+<div class="box" id="formLibro">
+
+
+<h2 id="titoloForm">➕ Aggiungi libro</h2>
 
 
 
-<label for="isbn">
-ISBN
-</label>
+<label for="isbn">ISBN</label>
 
 <input
 id="isbn"
@@ -213,202 +178,161 @@ placeholder="Inserisci ISBN"
 📷 Scansiona ISBN
 </button>
 
+
+<label class="riga-interruttore">
+
+<input type="checkbox" id="scansioneContinua">
+
+<span>Scansione continua (più libri di seguito)</span>
+
+</label>
+
+
 <div id="scanner"></div>
 
 
 
-<label for="copertina">
-Copertina (URL immagine)
-</label>
+<div id="codaScansione" class="coda" hidden>
 
+<h3>📥 Coda di scansione <span id="contaCoda">0</span></h3>
 
-<input
-id="copertina"
-type="url"
-placeholder="https://..."
->
+<p class="nota-coda">
+I libri in coda usano la posizione indicata qui sotto nel modulo
+(stanza, libreria, scaffale) e lo stato "Da leggere".
+</p>
 
+<ul id="elencoCoda"></ul>
 
+<p id="avanzamentoCoda" class="contatore"></p>
 
+<button type="button" id="elaboraCoda">
+✅ Aggiungi i libri in coda
+</button>
 
-<label for="titolo">
-Titolo *
-</label>
+<button type="button" id="svuotaCoda" class="btn-secondario">
+🗑 Svuota coda
+</button>
 
-
-<input
-id="titolo"
-type="text"
-required
->
-
+</div>
 
 
 
-<label for="autore">
-Autore
-</label>
+<label for="copertina">Copertina (URL immagine)</label>
+
+<input id="copertina" type="url" placeholder="https://...">
 
 
-<input
-id="autore"
-type="text"
->
+<label for="titolo">Titolo *</label>
+
+<input id="titolo" type="text" required>
 
 
+<label for="autore">Autore</label>
+
+<input id="autore" type="text">
 
 
-<label for="genere">
-Genere
-</label>
-
+<label for="genere">Genere</label>
 
 <select id="genere">
 
-
 <option>Narrativa</option>
-
 <option>Giallo</option>
-
 <option>Thriller</option>
-
 <option>Storico</option>
-
 <option>Fantascienza</option>
-
 <option>Saggio</option>
-
 <option>Biografia</option>
-
 <option>Altro</option>
-
 
 </select>
 
 
+<label for="anno">Anno pubblicazione</label>
+
+<input id="anno" type="number" min="0" max="2100">
 
 
-
-<label for="anno">
-Anno pubblicazione
-</label>
-
-
-<input
-id="anno"
-type="number"
-min="0"
-max="2100"
->
-
-
-
-
-<label for="stato">
-Stato lettura
-</label>
-
+<label for="stato">Stato lettura</label>
 
 <select id="stato">
 
-
 <option>Da leggere</option>
-
 <option>In lettura</option>
-
 <option>Letto</option>
-
 <option>Abbandonato</option>
-
 
 </select>
 
 
-
-
-
-<label for="voto">
-Valutazione
-</label>
-
+<label for="voto">Valutazione</label>
 
 <select id="voto">
 
-
 <option value="0">Nessun voto</option>
-
 <option value="1">⭐</option>
-
 <option value="2">⭐⭐</option>
-
 <option value="3">⭐⭐⭐</option>
-
 <option value="4">⭐⭐⭐⭐</option>
-
 <option value="5">⭐⭐⭐⭐⭐</option>
 
-
 </select>
-
-
 
 
 
 <h3>📍 Posizione libro</h3>
 
+<label for="stanza">Stanza</label>
 
-<label for="stanza">
-Stanza
-</label>
+<input id="stanza" type="text" list="elencoStanze">
 
-
-<input id="stanza" type="text">
+<datalist id="elencoStanze"></datalist>
 
 
+<label for="libreria">Libreria</label>
 
-<label for="libreria">
-Libreria
-</label>
+<input id="libreria" type="text" list="elencoLibrerie">
 
-
-<input id="libreria" type="text">
+<datalist id="elencoLibrerie"></datalist>
 
 
+<label for="scaffale">Scaffale</label>
 
-<label for="scaffale">
-Scaffale
-</label>
+<input id="scaffale" type="text" list="elencoScaffali">
 
-
-<input id="scaffale" type="text">
+<datalist id="elencoScaffali"></datalist>
 
 
 
+<h3>🤝 Prestito</h3>
+
+<label for="prestatoA">Prestato a</label>
+
+<input id="prestatoA" type="text" placeholder="Nome della persona">
 
 
-<label for="note">
-Note personali
-</label>
+<label for="dataPrestito">Dal giorno</label>
 
+<input id="dataPrestito" type="date">
+
+
+
+<label for="note">Note personali</label>
 
 <textarea id="note"></textarea>
 
 
 
-
 <button type="button" id="salvaLibro">
-
 💾 Salva libro
-
 </button>
-
 
 <button type="button" id="annullaModifica" class="btn-secondario" hidden>
-
 ✖ Annulla modifica
-
 </button>
 
+
+</div>
 
 
 </section>
@@ -418,21 +342,112 @@ Note personali
 
 
 
-
-<!-- STATISTICHE -->
-
-
-<section class="box">
+<!-- ============ VISTA POSIZIONI ============ -->
 
 
-<h2>📊 Statistiche</h2>
+<section id="vistaPosizioni" hidden>
 
 
-<div id="statistiche">
+<div class="box">
 
-Nessun dato disponibile
+<h2>📍 Dove sono i libri</h2>
+
+<p class="contatore">
+Apri una stanza per vedere librerie e scaffali. Tocca un ripiano per
+filtrare la libreria.
+</p>
+
+<div id="alberoPosizioni">Nessuna posizione registrata</div>
 
 </div>
+
+
+</section>
+
+
+
+
+
+
+<!-- ============ VISTA STATISTICHE ============ -->
+
+
+<section id="vistaStatistiche" hidden>
+
+
+<div id="dashboard">
+
+<div class="stat-card">
+<span id="totaleLibri">0</span>
+<small>Libri totali</small>
+</div>
+
+<div class="stat-card">
+<span id="libriLetti">0</span>
+<small>Letti</small>
+</div>
+
+<div class="stat-card">
+<span id="libriDaLeggere">0</span>
+<small>Da leggere</small>
+</div>
+
+<div class="stat-card">
+<span id="libriLettura">0</span>
+<small>In lettura</small>
+</div>
+
+</div>
+
+
+
+<div class="box">
+
+<h2>📊 Dettaglio</h2>
+
+<div id="statistiche">Nessun dato disponibile</div>
+
+</div>
+
+
+
+<div class="box">
+
+<h2>⚙ Impostazioni</h2>
+
+<button type="button" id="esportaBackup">
+📤 Esporta biblioteca
+</button>
+
+<label for="importaBackup">
+Importa un backup (.json)
+</label>
+
+<input type="file" id="importaBackup" accept=".json,application/json">
+
+<p class="contatore">
+L'importazione unisce: se un libro ha lo stesso ISBN di uno già presente,
+viene aggiornato invece di essere duplicato.
+</p>
+
+<h3>🖼 Copertine</h3>
+
+<p class="contatore">
+Salva le copertine dentro l'app, così restano visibili anche offline.
+</p>
+
+<button type="button" id="scaricaCopertine">
+⬇ Salva le copertine mancanti
+</button>
+
+<p id="statoCopertine" class="contatore"></p>
+
+</div>
+
+
+<footer>
+<p>La Mia Libreria © 2026</p>
+</footer>
 
 
 </section>
@@ -445,13 +460,25 @@ Nessun dato disponibile
 
 
 
-<footer>
+<nav id="navigazione">
 
-<p>
-La Mia Libreria © 2026
-</p>
+<button type="button" class="attivo" data-vista="libreria">
+📖<span>Libreria</span>
+</button>
 
-</footer>
+<button type="button" data-vista="aggiungi">
+➕<span>Aggiungi</span>
+</button>
+
+<button type="button" data-vista="posizioni">
+📍<span>Posizioni</span>
+</button>
+
+<button type="button" data-vista="statistiche">
+📊<span>Statistiche</span>
+</button>
+
+</nav>
 
 
 
@@ -477,10 +504,7 @@ if("serviceWorker" in navigator){
         .register("service-worker.js")
         .catch(function(errore){
 
-            console.error(
-            "Service worker non registrato",
-            errore
-            );
+            console.error("Service worker non registrato", errore);
 
         });
 

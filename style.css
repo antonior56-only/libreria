@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Foglio di stile principale - v1.2
+   Foglio di stile principale - v1.3
 =================================== */
 
 
@@ -31,6 +31,9 @@ body {
 
     line-height: 1.5;
 
+    /* spazio per la barra di navigazione fissa */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+
 }
 
 
@@ -43,7 +46,7 @@ header {
 
     color:white;
 
-    padding:25px;
+    padding:20px 25px;
 
     text-align:center;
 
@@ -52,16 +55,9 @@ header {
 
 header h1 {
 
-    font-size:28px;
+    font-size:26px;
 
     margin-bottom:5px;
-
-}
-
-
-header p {
-
-    opacity:0.9;
 
 }
 
@@ -70,9 +66,9 @@ header p {
 
     width:auto;
 
-    margin-top:12px;
+    margin:8px 0 0;
 
-    padding:8px 16px;
+    padding:7px 16px;
 
     font-size:14px;
 
@@ -93,6 +89,149 @@ main {
     margin:auto;
 
     padding:15px;
+
+}
+
+
+
+/* BARRA DI RICERCA FISSA */
+
+.barra-ricerca {
+
+    position:sticky;
+
+    top:0;
+
+    z-index:5;
+
+    background:#f4f6f8;
+
+    padding:12px 0 8px;
+
+    margin-bottom:10px;
+
+}
+
+
+.barra-ricerca input {
+
+    margin-bottom:10px;
+
+    background:white;
+
+}
+
+
+
+/* FILTRI RAPIDI */
+
+.chip-riga {
+
+    display:flex;
+
+    gap:8px;
+
+    overflow-x:auto;
+
+    padding-bottom:4px;
+
+    -webkit-overflow-scrolling:touch;
+
+}
+
+
+.chip {
+
+    width:auto;
+
+    flex:0 0 auto;
+
+    padding:8px 14px;
+
+    margin:0;
+
+    font-size:14px;
+
+    border-radius:20px;
+
+    background:white;
+
+    color:#2c3e50;
+
+    border:1px solid #ccc;
+
+    white-space:nowrap;
+
+}
+
+
+.chip.attivo {
+
+    background:#2c3e50;
+
+    color:white;
+
+    border-color:#2c3e50;
+
+}
+
+
+.chip-conteggio {
+
+    opacity:.7;
+
+    font-size:13px;
+
+    margin-left:4px;
+
+}
+
+
+
+/* ORDINAMENTO */
+
+.riga-ordinamento {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:8px;
+
+}
+
+
+.riga-ordinamento label {
+
+    margin:0;
+
+    font-size:14px;
+
+    white-space:nowrap;
+
+}
+
+
+.riga-ordinamento select {
+
+    margin:0;
+
+    padding:8px;
+
+    font-size:15px;
+
+}
+
+
+.contatore {
+
+    color:#777;
+
+    font-size:14px;
+
+    margin-bottom:12px;
 
 }
 
@@ -440,12 +579,84 @@ button:focus-visible {
 
 
 
-/* RICERCA */
+/* NAVIGAZIONE A TRE SCHEDE */
 
 
-#ricerca {
+#navigazione {
+
+    position:fixed;
+
+    bottom:0;
+
+    left:0;
+
+    right:0;
+
+    z-index:10;
+
+
+    display:flex;
+
 
     background:white;
+
+    border-top:1px solid #ddd;
+
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+
+    box-shadow:0 -2px 10px rgba(0,0,0,.06);
+
+}
+
+
+#navigazione button {
+
+    flex:1;
+
+    margin:0;
+
+    padding:10px 4px;
+
+    border-radius:0;
+
+
+    background:none;
+
+    color:#7f8c8d;
+
+
+    font-size:20px;
+
+    line-height:1.2;
+
+}
+
+
+#navigazione button span {
+
+    display:block;
+
+    font-size:12px;
+
+    font-weight:bold;
+
+}
+
+
+#navigazione button.attivo {
+
+    color:#2c3e50;
+
+    box-shadow:inset 0 3px 0 #2c3e50;
+
+}
+
+
+#navigazione button:hover {
+
+    opacity:1;
+
+    background:#f4f6f8;
 
 }
 
@@ -481,7 +692,7 @@ footer {
 
     header h1 {
 
-        font-size:23px;
+        font-size:22px;
 
     }
 
@@ -505,6 +716,13 @@ body.dark {
     background:#121212;
 
     color:#eee;
+
+}
+
+
+body.dark .barra-ricerca {
+
+    background:#121212;
 
 }
 
@@ -543,9 +761,31 @@ body.dark textarea {
 }
 
 
-body.dark #ricerca {
+body.dark .barra-ricerca input {
 
     background:#333;
+
+}
+
+
+body.dark .chip {
+
+    background:#1e1e1e;
+
+    color:#eee;
+
+    border-color:#444;
+
+}
+
+
+body.dark .chip.attivo {
+
+    background:#8ab4d8;
+
+    color:#111;
+
+    border-color:#8ab4d8;
 
 }
 
@@ -573,8 +813,481 @@ body.dark .elenco-generi li {
 }
 
 
-body.dark .stat-card small {
+body.dark .stat-card small,
+body.dark .contatore {
 
     color:#aaa;
+
+}
+
+
+body.dark #navigazione {
+
+    background:#1e1e1e;
+
+    border-top-color:#333;
+
+}
+
+
+body.dark #navigazione button {
+
+    color:#888;
+
+}
+
+
+body.dark #navigazione button.attivo {
+
+    color:#8ab4d8;
+
+    box-shadow:inset 0 3px 0 #8ab4d8;
+
+}
+
+
+body.dark #navigazione button:hover {
+
+    background:#252525;
+
+}
+
+
+
+/* ===================================
+   NUOVI COMPONENTI - v1.4
+=================================== */
+
+
+/* BANNER PROMEMORIA BACKUP */
+
+.banner {
+
+    background:#fff8e1;
+
+    border:1px solid #f0c36d;
+
+    border-radius:12px;
+
+    padding:14px;
+
+    margin-bottom:14px;
+
+}
+
+
+.banner p {
+
+    margin-bottom:10px;
+
+    font-size:15px;
+
+    color:#7a5c00;
+
+}
+
+
+.banner-azioni {
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+
+.banner-azioni button {
+
+    margin:0;
+
+    padding:10px;
+
+    font-size:15px;
+
+}
+
+
+
+/* FILTRO POSIZIONE ATTIVO */
+
+.filtro-attivo {
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:10px;
+
+
+    background:#eaf2f8;
+
+    border:1px solid #b8d4e8;
+
+    border-radius:20px;
+
+    padding:8px 8px 8px 14px;
+
+    margin-bottom:12px;
+
+    font-size:15px;
+
+    color:#1b4f72;
+
+}
+
+
+.btn-mini {
+
+    width:auto;
+
+    margin:0;
+
+    padding:4px 10px;
+
+    font-size:14px;
+
+    border-radius:14px;
+
+}
+
+
+
+/* INTERRUTTORE SCANSIONE CONTINUA */
+
+.riga-interruttore {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-weight:normal;
+
+    margin:4px 0 12px;
+
+    cursor:pointer;
+
+}
+
+
+.riga-interruttore input {
+
+    width:auto;
+
+    margin:0;
+
+    transform:scale(1.3);
+
+}
+
+
+
+/* CODA DI SCANSIONE */
+
+.coda {
+
+    background:#f4f6f8;
+
+    border:1px dashed #aab;
+
+    border-radius:12px;
+
+    padding:14px;
+
+    margin-bottom:16px;
+
+}
+
+
+.coda h3 {
+
+    margin:0 0 8px;
+
+}
+
+
+.coda .nota-coda {
+
+    font-size:14px;
+
+    color:#666;
+
+    margin-bottom:10px;
+
+}
+
+
+#elencoCoda {
+
+    list-style:none;
+
+    margin-bottom:10px;
+
+}
+
+
+#elencoCoda li {
+
+    padding:6px 0;
+
+    border-bottom:1px solid #e0e4e8;
+
+    font-family:monospace;
+
+    font-size:15px;
+
+}
+
+
+.segno-doppio {
+
+    font-family:inherit;
+
+    font-size:13px;
+
+    color:#b9770e;
+
+}
+
+
+.esito-lettura {
+
+    text-align:center;
+
+    font-size:15px;
+
+    margin:6px 0 10px;
+
+    min-height:22px;
+
+}
+
+
+
+/* PRESTITI */
+
+.badge-prestito {
+
+    display:inline-block;
+
+    background:#fdebd0;
+
+    color:#7e5109;
+
+    border-radius:6px;
+
+    padding:4px 8px;
+
+    font-size:14px;
+
+    margin:4px 0 !important;
+
+}
+
+
+
+/* ALBERO DELLE POSIZIONI */
+
+#alberoPosizioni details {
+
+    margin-bottom:8px;
+
+}
+
+
+#alberoPosizioni summary {
+
+    cursor:pointer;
+
+    padding:10px;
+
+    border-radius:8px;
+
+    font-weight:bold;
+
+    background:#f4f6f8;
+
+}
+
+
+#alberoPosizioni .nodo-libreria {
+
+    margin-left:14px;
+
+}
+
+
+#alberoPosizioni .nodo-libreria summary {
+
+    background:#eef2f5;
+
+    font-weight:normal;
+
+}
+
+
+.nodo-scaffale {
+
+    margin:8px 0 8px 28px;
+
+}
+
+
+.riga-scaffale {
+
+    width:100%;
+
+    text-align:left;
+
+    margin:0 0 6px;
+
+    padding:10px;
+
+    font-size:15px;
+
+    background:#2c3e50;
+
+}
+
+
+.conteggio {
+
+    float:right;
+
+    background:rgba(0,0,0,.15);
+
+    border-radius:10px;
+
+    padding:0 8px;
+
+    font-size:13px;
+
+}
+
+
+summary .conteggio {
+
+    background:rgba(0,0,0,.08);
+
+}
+
+
+.titoli-scaffale {
+
+    list-style:none;
+
+    margin-left:6px;
+
+}
+
+
+.titoli-scaffale li {
+
+    padding:4px 0;
+
+    font-size:15px;
+
+    border-bottom:1px solid #eee;
+
+}
+
+
+
+/* MODALITA' SCURA - NUOVI COMPONENTI */
+
+body.dark .banner {
+
+    background:#3a2f10;
+
+    border-color:#7a6320;
+
+}
+
+
+body.dark .banner p {
+
+    color:#f0d38a;
+
+}
+
+
+body.dark .filtro-attivo {
+
+    background:#1b2b36;
+
+    border-color:#2f5670;
+
+    color:#9fc9e8;
+
+}
+
+
+body.dark .coda {
+
+    background:#1a1a1a;
+
+    border-color:#444;
+
+}
+
+
+body.dark .coda .nota-coda {
+
+    color:#aaa;
+
+}
+
+
+body.dark #elencoCoda li {
+
+    border-bottom-color:#333;
+
+}
+
+
+body.dark .badge-prestito {
+
+    background:#4a3b18;
+
+    color:#f0d38a;
+
+}
+
+
+body.dark #alberoPosizioni summary {
+
+    background:#232323;
+
+}
+
+
+body.dark #alberoPosizioni .nodo-libreria summary {
+
+    background:#1c1c1c;
+
+}
+
+
+body.dark .riga-scaffale {
+
+    background:#2f4a5f;
+
+}
+
+
+body.dark .titoli-scaffale li {
+
+    border-bottom-color:#2a2a2a;
+
+}
+
+
+body.dark .conteggio,
+body.dark summary .conteggio {
+
+    background:rgba(255,255,255,.12);
 
 }

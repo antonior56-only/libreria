@@ -4,7 +4,7 @@
 =================================== */
 
 
-const CACHE_NAME = "la-mia-libreria-v3";
+const CACHE_NAME = "la-mia-libreria-v5";
 
 
 const FILE_DA_CACHE = [
