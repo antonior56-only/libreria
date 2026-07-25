@@ -4,7 +4,7 @@
 =================================== */
 
 
-const CACHE_NAME = "la-mia-libreria-v2";
+const CACHE_NAME = "la-mia-libreria-v3";
 
 
 const FILE_DA_CACHE = [
@@ -17,8 +17,8 @@ const FILE_DA_CACHE = [
     "./isbn.js",
     "./scanner.js",
     "./manifest.json",
-    "./icons/icon-192.png",
-    "./icons/icon-512.png",
+    "./icon-192.png",
+    "./icon-512.png",
 
     "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"
 
