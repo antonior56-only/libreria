@@ -27,6 +27,8 @@
 
 <p>La tua biblioteca personale digitale</p>
 
+<button type="button" id="temaScuro" class="btn-tema">🌙 Tema scuro</button>
+
 </header>
 
 
@@ -78,7 +80,7 @@
 <h2>⚙ Strumenti</h2>
 
 
-<button id="esportaBackup">
+<button type="button" id="esportaBackup">
 📤 Esporta biblioteca
 </button>
 
@@ -86,10 +88,15 @@
 <br><br>
 
 
-<input 
+<label for="importaBackup">
+Importa un backup (.json)
+</label>
+
+
+<input
 type="file"
 id="importaBackup"
-accept=".json"
+accept=".json,application/json"
 >
 
 
@@ -108,19 +115,24 @@ accept=".json"
 <h2>🔍 Cerca</h2>
 
 
-<input 
+<input
 id="ricerca"
 type="search"
 placeholder="Titolo, autore, genere..."
 >
 
 
-<label>
+<label for="ordinamento">
 Ordina per
 </label>
 
 
 <select id="ordinamento">
+
+
+<option value="data">
+Ultimi inseriti
+</option>
 
 
 <option value="titolo">
@@ -135,11 +147,6 @@ Autore A-Z
 
 <option value="voto">
 Valutazione
-</option>
-
-
-<option value="data">
-Ultimi inseriti
 </option>
 
 
@@ -180,19 +187,42 @@ Ultimi inseriti
 <!-- FORM LIBRO -->
 
 
-<section class="box">
+<section class="box" id="formLibro">
 
 
 <h2>➕ Aggiungi libro</h2>
 
 
 
-<label>
+<label for="isbn">
+ISBN
+</label>
+
+<input
+id="isbn"
+type="text"
+inputmode="numeric"
+placeholder="Inserisci ISBN"
+>
+
+<button type="button" id="cercaISBN">
+📚 Cerca libro
+</button>
+
+<button type="button" id="avviaScanner">
+📷 Scansiona ISBN
+</button>
+
+<div id="scanner"></div>
+
+
+
+<label for="copertina">
 Copertina (URL immagine)
 </label>
 
 
-<input 
+<input
 id="copertina"
 type="url"
 placeholder="https://..."
@@ -201,25 +231,26 @@ placeholder="https://..."
 
 
 
-<label>
+<label for="titolo">
 Titolo *
 </label>
 
 
-<input 
+<input
 id="titolo"
 type="text"
+required
 >
 
 
 
 
-<label>
+<label for="autore">
 Autore
 </label>
 
 
-<input 
+<input
 id="autore"
 type="text"
 >
@@ -227,7 +258,7 @@ type="text"
 
 
 
-<label>
+<label for="genere">
 Genere
 </label>
 
@@ -258,47 +289,22 @@ Genere
 
 
 
-<label>
+<label for="anno">
 Anno pubblicazione
 </label>
 
 
-<input 
+<input
 id="anno"
 type="number"
+min="0"
+max="2100"
 >
 
 
 
 
-<label>
-ISBN
-</label>
-
-<input 
-id="isbn"
-type="text"
-placeholder="Inserisci ISBN"
->
-
-<button id="cercaISBN">
-📚 Cerca libro
-</button>
-
-<button id="avviaScanner">
-📷 Scansiona ISBN
-</button>
-
-<div id="scanner"></div>
-
-<button id="cercaISBN">
-📚 Cerca libro
-</button>
-
-
-
-
-<label>
+<label for="stato">
 Stato lettura
 </label>
 
@@ -321,13 +327,15 @@ Stato lettura
 
 
 
-<label>
+<label for="voto">
 Valutazione
 </label>
 
 
 <select id="voto">
 
+
+<option value="0">Nessun voto</option>
 
 <option value="1">⭐</option>
 
@@ -349,7 +357,7 @@ Valutazione
 <h3>📍 Posizione libro</h3>
 
 
-<label>
+<label for="stanza">
 Stanza
 </label>
 
@@ -358,7 +366,7 @@ Stanza
 
 
 
-<label>
+<label for="libreria">
 Libreria
 </label>
 
@@ -367,7 +375,7 @@ Libreria
 
 
 
-<label>
+<label for="scaffale">
 Scaffale
 </label>
 
@@ -378,7 +386,7 @@ Scaffale
 
 
 
-<label>
+<label for="note">
 Note personali
 </label>
 
@@ -388,9 +396,16 @@ Note personali
 
 
 
-<button id="salvaLibro">
+<button type="button" id="salvaLibro">
 
 💾 Salva libro
+
+</button>
+
+
+<button type="button" id="annullaModifica" class="btn-secondario" hidden>
+
+✖ Annulla modifica
 
 </button>
 
@@ -443,13 +458,37 @@ La Mia Libreria © 2026
 
 <script src="database.js"></script>
 
-<script src="js/isbn.js"></script>
+<script src="isbn.js"></script>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-<script src="js/scanner.js"></script>
+<script src="scanner.js"></script>
 
 <script src="app.js"></script>
+
+
+<script>
+
+if("serviceWorker" in navigator){
+
+    window.addEventListener("load", function(){
+
+        navigator.serviceWorker
+        .register("service-worker.js")
+        .catch(function(errore){
+
+            console.error(
+            "Service worker non registrato",
+            errore
+            );
+
+        });
+
+    });
+
+}
+
+</script>
 
 
 </body>

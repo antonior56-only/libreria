@@ -1,191 +1,92 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN avanzata
+   Ricerca ISBN - versione 1.2
 =================================== */
 
 
 async function cercaISBN(){
 
 
+    const campo =
+    document.getElementById("isbn");
+
+
     const isbn =
-    document
-    .getElementById("isbn")
-    .value
-    .trim();
+    normalizzaIsbn(campo.value);
 
 
 
     if(!isbn){
 
         alert(
-        "Inserire un ISBN"
+        "Inserire un ISBN valido (10 o 13 cifre, i trattini sono ammessi)."
         );
+
+        campo.focus();
 
         return;
 
     }
 
 
+    campo.value = isbn;
+
+
+
+    const bottone =
+    document.getElementById("cercaISBN");
+
+    const etichetta = bottone.textContent;
+
+    bottone.disabled = true;
+
+    bottone.textContent = "⏳ Ricerca in corso...";
+
+
 
     try {
 
 
-        const risposta =
-        await fetch(
-        `https://openlibrary.org/isbn/${isbn}.json`
-        );
+        const dati =
+        await recuperaDaOpenLibrary(isbn);
 
 
+        if(!dati){
 
-        if(!risposta.ok){
-
-            throw new Error();
-
-        }
-
-
-
-        const libro =
-        await risposta.json();
-
-
-
-
-
-        // TITOLO
-
-        document
-        .getElementById("titolo")
-        .value =
-        libro.title || "";
-
-
-
-
-
-        // ANNO
-
-        if(libro.publish_date){
-
-            document
-            .getElementById("anno")
-            .value =
-            libro.publish_date
-            .match(/\d{4}/)?.[0] || "";
-
-        }
-
-
-
-
-
-
-        // EDITORE
-
-        if(libro.publishers){
-
-
-            aggiungiNota(
-            "Editore: "
-            +
-            libro.publishers.join(", ")
+            alert(
+            "Libro non trovato su Open Library. Inserimento manuale."
             );
 
-        }
-
-
-
-
-
-
-
-        // AUTORI
-
-        if(libro.authors){
-
-
-            let autori = [];
-
-
-            for(
-            const autore of libro.authors
-            ){
-
-
-                const dati =
-                await fetch(
-                "https://openlibrary.org"
-                +
-                autore.key
-                +
-                ".json"
-                );
-
-
-                const autoreInfo =
-                await dati.json();
-
-
-                autori.push(
-                autoreInfo.name
-                );
-
-
-            }
-
-
-
-            document
-            .getElementById("autore")
-            .value =
-            autori.join(", ");
-
+            return;
 
         }
 
 
+        compilaModulo(dati);
 
 
+        alert("Dati libro recuperati.");
 
 
-
-        // COPERTINA
-
-        if(libro.covers){
+    }
+    catch(errore){
 
 
-            const id =
-            libro.covers[0];
-
-
-
-            document
-            .getElementById("copertina")
-            .value =
-            `https://covers.openlibrary.org/id/${id}-L.jpg`;
-
-        }
-
-
-
-
-
+        console.error("Errore ricerca ISBN", errore);
 
 
         alert(
-        "Dati libro recuperati"
+        "Ricerca non riuscita: controlla la connessione e riprova."
         );
 
 
     }
+    finally {
 
 
-    catch(error){
+        bottone.disabled = false;
 
-
-        alert(
-        "Libro non trovato. Inserimento manuale."
-        );
+        bottone.textContent = etichetta;
 
 
     }
@@ -198,15 +99,197 @@ async function cercaISBN(){
 
 
 
+// PULIZIA CODICE
+
+
+function normalizzaIsbn(grezzo){
+
+
+    const pulito =
+    String(grezzo || "")
+    .replace(/[^0-9Xx]/g, "")
+    .toUpperCase();
+
+
+    if(pulito.length === 10 || pulito.length === 13){
+
+        return pulito;
+
+    }
+
+
+    return "";
+
+
+}
+
+
+
+
+
+
+// CHIAMATA API
+
+
+async function recuperaDaOpenLibrary(isbn){
+
+
+    const indirizzo =
+    "https://openlibrary.org/api/books" +
+    "?bibkeys=ISBN:" + isbn +
+    "&format=json&jscmd=data";
+
+
+
+    const risposta =
+    await fetch(indirizzo);
+
+
+    if(!risposta.ok){
+
+        throw new Error("Risposta HTTP " + risposta.status);
+
+    }
+
+
+
+    const json =
+    await risposta.json();
+
+
+    const libro =
+    json["ISBN:" + isbn];
+
+
+    if(!libro){
+
+        return null;
+
+    }
+
+
+
+    return {
+
+
+        titolo:
+        libro.title || "",
+
+
+        autori:
+        (libro.authors || [])
+        .map(function(a){ return a.name; })
+        .filter(Boolean)
+        .join(", "),
+
+
+        anno:
+        (libro.publish_date || "")
+        .match(/\d{4}/)?.[0] || "",
+
+
+        editore:
+        (libro.publishers || [])
+        .map(function(p){ return p.name; })
+        .filter(Boolean)
+        .join(", "),
+
+
+        copertina:
+        libro.cover?.large ||
+        libro.cover?.medium ||
+        "",
+
+
+        soggetti:
+        (libro.subjects || [])
+        .slice(0, 3)
+        .map(function(s){ return s.name; })
+        .filter(Boolean)
+        .join(", ")
+
+
+    };
+
+
+}
+
+
+
+
+
+
+// COMPILAZIONE CAMPI
+
+
+function compilaModulo(dati){
+
+
+    if(dati.titolo){
+
+        document.getElementById("titolo").value = dati.titolo;
+
+    }
+
+
+    if(dati.autori){
+
+        document.getElementById("autore").value = dati.autori;
+
+    }
+
+
+    if(dati.anno){
+
+        document.getElementById("anno").value = dati.anno;
+
+    }
+
+
+    if(dati.copertina){
+
+        document.getElementById("copertina").value = dati.copertina;
+
+    }
+
+
+    if(dati.editore){
+
+        aggiungiNota("Editore: " + dati.editore);
+
+    }
+
+
+    if(dati.soggetti){
+
+        aggiungiNota("Argomenti: " + dati.soggetti);
+
+    }
+
+
+}
+
+
+
+
+
+
+// NOTE
 
 
 function aggiungiNota(testo){
 
 
     const campo =
-    document
-    .getElementById("note");
+    document.getElementById("note");
 
+
+    // evita di ripetere la stessa nota
+    if(campo.value.includes(testo)){
+
+        return;
+
+    }
 
 
     if(campo.value){
@@ -214,7 +297,6 @@ function aggiungiNota(testo){
         campo.value += "\n";
 
     }
-
 
 
     campo.value += testo;
