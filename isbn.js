@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN e titolo - versione 2.1
+   Ricerca ISBN e titolo - versione 2.2
    Quattro strategie in cascata + diagnostica visibile
 =================================== */
 
@@ -102,8 +102,52 @@ async function cercaISBN(){
 
     if(!isbn){
 
+
+        const grezzo = String(campo.value || "").trim();
+
+
+        // se sembra un titolo (contiene parole) si propone
+        // la ricerca per titolo invece di rifiutare
+        if(
+            /[a-zA-Z]{3}/.test(grezzo) &&
+            typeof cercaPerTitolo === "function" &&
+            document.getElementById("titoloRicerca")
+        ){
+
+
+            const perTitolo = confirm(
+            "«" + grezzo + "» non sembra un ISBN.\n\n" +
+            "Vuoi cercarlo come titolo?"
+            );
+
+
+            if(perTitolo){
+
+
+                document.getElementById("titoloRicerca").value = grezzo;
+
+                campo.value = "";
+
+
+                await cercaPerTitolo();
+
+
+                return;
+
+
+            }
+
+
+            return;
+
+
+        }
+
+
+
         alert(
-        "Inserire un ISBN valido (10 o 13 cifre, i trattini sono ammessi)."
+        "Inserire un ISBN valido (10 o 13 cifre, i trattini sono ammessi).\n\n" +
+        "Per cercare per titolo usa il campo «Oppure cerca per titolo» qui sotto."
         );
 
         campo.focus();
@@ -959,206 +1003,6 @@ async function openLibraryRicerca(isbn){
 
 
 
-// RICERCA PER TITOLO
-
-
-async function cercaPerTitolo(testo){
-
-
-    ultimaDiagnostica = [];
-
-
-    const interrogazione = encodeURIComponent(testo.trim());
-
-
-    if(chiaveGoogle && typeof chiaveGoogle === "function" && chiaveGoogle()){
-
-
-        try {
-
-
-            const risultati =
-            await titoloDaGoogle(interrogazione);
-
-
-            if(risultati.length){
-
-                ultimaDiagnostica.push(
-                "Google Books: " + risultati.length + " risultati ✅"
-                );
-
-                return { risultati: risultati, fonte: "Google Books" };
-
-            }
-
-
-            ultimaDiagnostica.push("Google Books: nessun risultato");
-
-
-        }
-        catch(errore){
-
-            ultimaDiagnostica.push(
-            "Google Books: " + spiegaErrore(errore)
-            );
-
-        }
-
-
-    }
-    else {
-
-        ultimaDiagnostica.push(
-        "Google Books: saltato (nessuna chiave configurata)"
-        );
-
-    }
-
-
-
-    try {
-
-
-        const risultati =
-        await titoloDaOpenLibrary(interrogazione);
-
-
-        if(risultati.length){
-
-            ultimaDiagnostica.push(
-            "Open Library: " + risultati.length + " risultati ✅"
-            );
-
-            return { risultati: risultati, fonte: "Open Library" };
-
-        }
-
-
-        ultimaDiagnostica.push("Open Library: nessun risultato");
-
-
-    }
-    catch(errore){
-
-        ultimaDiagnostica.push(
-        "Open Library: " + spiegaErrore(errore)
-        );
-
-    }
-
-
-
-    return { risultati: [], fonte: "" };
-
-
-}
-
-
-
-async function titoloDaGoogle(interrogazione){
-
-
-    const chiave = chiaveGoogle();
-
-
-    const risposta = await fetch(
-        "https://www.googleapis.com/books/v1/volumes?q=" +
-        interrogazione +
-        "&maxResults=12&printType=books" +
-        "&key=" + encodeURIComponent(chiave)
-    );
-
-
-    if(!risposta.ok){
-
-        throw new Error(await descriviRisposta(risposta));
-
-    }
-
-
-    const json = await risposta.json();
-
-
-    if(!json.items){
-
-        return [];
-
-    }
-
-
-    return json.items
-    .map(mappaVolumeGoogle)
-    .filter(function(v){ return v.titolo; });
-
-
-}
-
-
-
-async function titoloDaOpenLibrary(interrogazione){
-
-
-    const risposta = await fetch(
-        "https://openlibrary.org/search.json?q=" +
-        interrogazione + "&limit=12"
-    );
-
-
-    if(!risposta.ok){
-
-        throw new Error(await descriviRisposta(risposta));
-
-    }
-
-
-    const json = await risposta.json();
-
-
-    if(!json.docs){
-
-        return [];
-
-    }
-
-
-    return json.docs.map(function(doc){
-
-
-        return {
-
-            titolo: doc.title || "",
-
-            autori: (doc.author_name || []).join(", "),
-
-            anno: doc.first_publish_year
-            ? String(doc.first_publish_year) : "",
-
-            editore: (doc.publisher || [])[0] || "",
-
-            copertina: doc.cover_i
-            ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg"
-            : "",
-
-            pagine: doc.number_of_pages_median || "",
-
-            soggetti: (doc.subject || []).slice(0, 3).join(", "),
-
-            isbn: (doc.isbn || [])[0] || ""
-
-        };
-
-
-    })
-    .filter(function(v){ return v.titolo; });
-
-
-}
-
-
-
-
-
-
 // COMPILAZIONE CAMPI
 
 
@@ -1799,3 +1643,57 @@ function usaRisultato(indice){
 
 
 }
+
+
+
+
+
+
+// INVIO DA TASTIERA NEI DUE CAMPI DI RICERCA
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+
+    const campoIsbn = document.getElementById("isbn");
+
+
+    if(campoIsbn){
+
+        campoIsbn.addEventListener("keydown", function(evento){
+
+            if(evento.key === "Enter"){
+
+                evento.preventDefault();
+
+                cercaISBN();
+
+            }
+
+        });
+
+    }
+
+
+
+    const campoTitolo = document.getElementById("titoloRicerca");
+
+
+    if(campoTitolo){
+
+        campoTitolo.addEventListener("keydown", function(evento){
+
+            if(evento.key === "Enter"){
+
+                evento.preventDefault();
+
+                cercaPerTitolo();
+
+            }
+
+        });
+
+    }
+
+
+});

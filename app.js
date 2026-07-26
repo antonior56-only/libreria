@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 1.8
+   app.js versione 1.9
 =================================== */
 
 
@@ -69,6 +69,11 @@ document.addEventListener("DOMContentLoaded", async function(){
     ascolta("cercaISBN",     "click",  cercaISBN);
     ascolta("cercaTitolo",   "click",  cercaPerTitolo);
     ascolta("risultatiRicerca","click", gestisciClickRisultati);
+
+
+    // Invio dentro i campi di ricerca
+    invioAvvia("isbn", cercaISBN);
+    invioAvvia("titoloRicerca", cercaPerTitolo);
     ascolta("avviaScanner",  "click",  avviaScanner);
     ascolta("ricerca",       "input",  applicaFiltri);
     ascolta("ordinamento",   "change", applicaFiltri);
@@ -93,6 +98,36 @@ document.addEventListener("DOMContentLoaded", async function(){
 
 
 });
+
+
+
+function invioAvvia(id, funzione){
+
+
+    const campo = document.getElementById(id);
+
+
+    if(!campo){
+
+        return;
+
+    }
+
+
+    campo.addEventListener("keydown", function(evento){
+
+        if(evento.key === "Enter"){
+
+            evento.preventDefault();
+
+            funzione();
+
+        }
+
+    });
+
+
+}
 
 
 
