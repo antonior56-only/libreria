@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 1.5
+   app.js versione 1.6
 =================================== */
 
 
@@ -2197,7 +2197,21 @@ function aggiornaStatistiche(){
 function chiaveGoogle(){
 
 
-    return String(leggiPreferenza("chiaveGoogleBooks") || "").trim();
+    const personale =
+    String(leggiPreferenza("chiaveGoogleBooks") || "").trim();
+
+
+    if(personale){
+
+        return personale;
+
+    }
+
+
+    // chiave condivisa scritta in isbn.js, se presente
+    return (typeof CHIAVE_PREDEFINITA === "string")
+    ? CHIAVE_PREDEFINITA.trim()
+    : "";
 
 
 }
@@ -2252,10 +2266,31 @@ function mostraStatoChiave(){
     }
 
 
-    stato.textContent =
-    chiave
-    ? "Chiave presente (termina con " + chiave.slice(-4) + ")."
-    : "Nessuna chiave: Google Books verrà saltato, si userà solo Open Library.";
+    const personale =
+    String(leggiPreferenza("chiaveGoogleBooks") || "").trim();
+
+
+    if(personale){
+
+        stato.textContent =
+        "Chiave personale attiva (termina con " +
+        personale.slice(-4) + ").";
+
+    }
+    else if(chiave){
+
+        stato.textContent =
+        "In uso la chiave condivisa dell'app. " +
+        "Puoi inserirne una tua per non consumare la stessa quota.";
+
+    }
+    else {
+
+        stato.textContent =
+        "Nessuna chiave: Google Books verrà saltato, " +
+        "si userà solo Open Library.";
+
+    }
 
 
 }

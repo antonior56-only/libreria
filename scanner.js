@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Scanner codice a barre - versione 1.4
+   Scanner codice a barre - versione 1.5
    Con modalità di scansione continua
 =================================== */
 
@@ -92,7 +92,15 @@ async function avviaScanner(){
 
 
 
-    const configurazione = {};
+    const configurazione = {
+
+        // usa il decodificatore di codici a barre integrato nel
+        // browser quando c'è: molto più rapido e preciso
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+        }
+
+    };
 
 
     if(typeof Html5QrcodeSupportedFormats !== "undefined"){
@@ -121,7 +129,12 @@ async function avviaScanner(){
 
             {
                 fps: 10,
-                qrbox: { width: 260, height: 140 }
+
+                // il riquadro si adatta al video reale invece di
+                // usare misure fisse che non gli corrispondono
+                qrbox: riquadroLettura,
+
+                aspectRatio: 1.3333
             },
 
             gestisciLettura,
@@ -161,6 +174,43 @@ async function avviaScanner(){
 
 
     }
+
+
+}
+
+
+
+
+
+
+// RIQUADRO DI LETTURA PROPORZIONATO AL VIDEO
+
+
+function riquadroLettura(larghezzaVideo, altezzaVideo){
+
+
+    // largo quasi quanto l'inquadratura, basso come un codice a barre
+    const larghezza =
+    Math.max(
+        160,
+        Math.floor(larghezzaVideo * 0.85)
+    );
+
+
+    const altezza =
+    Math.max(
+        90,
+        Math.min(
+            Math.floor(altezzaVideo * 0.45),
+            Math.floor(larghezza * 0.55)
+        )
+    );
+
+
+    return {
+        width:  Math.min(larghezza, larghezzaVideo),
+        height: Math.min(altezza,  altezzaVideo)
+    };
 
 
 }

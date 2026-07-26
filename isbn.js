@@ -1,8 +1,30 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN - versione 1.7
+   Ricerca ISBN - versione 1.9
    Quattro strategie in cascata + diagnostica visibile
 =================================== */
+
+
+/* ---------------------------------------------------------------
+   CHIAVE CONDIVISA
+
+   Incolla qui sotto la tua chiave Google Books per farla usare a
+   chiunque apra l'app dal tuo sito, senza che debba configurare
+   nulla. Lasciala vuota se preferisci che ognuno metta la propria
+   nelle Impostazioni.
+
+   Se la usi, nella console Google Cloud imposta:
+     - Restrizioni applicazioni: Siti web
+       -> https://antonior56-only.github.io/*
+     - Restrizioni API: solo Books API
+     - Nessuna fatturazione attiva sul progetto
+
+   Una chiave personale inserita in Impostazioni ha comunque
+   la precedenza su questa.
+--------------------------------------------------------------- */
+
+const CHIAVE_PREDEFINITA = "";
+
 
 
 let ultimaDiagnostica = [];
@@ -283,7 +305,7 @@ async function recuperaDatiIsbn(isbn){
             nome: "Google Books (isbn:" + isbn + ")",
             fonte: "Google Books",
             esegui: function(){
-                return google("q=isbn:" + isbn);
+                return googleConTentativi("q=isbn:" + isbn);
             }
         },
 
@@ -291,7 +313,7 @@ async function recuperaDatiIsbn(isbn){
             nome: "Google Books (isbn:" + isbn10 + ")",
             fonte: "Google Books",
             esegui: function(){
-                return google("q=isbn:" + isbn10);
+                return googleConTentativi("q=isbn:" + isbn10);
             }
         } : null,
 
@@ -315,7 +337,7 @@ async function recuperaDatiIsbn(isbn){
             nome: "Google Books (ricerca libera)",
             fonte: "Google Books",
             esegui: function(){
-                return google("q=" + isbn);
+                return googleConTentativi("q=" + isbn);
             }
         }
 
@@ -394,6 +416,15 @@ function spiegaErrore(errore){
     }
 
 
+    if(/HTTP 5\d\d/.test(messaggio)){
+
+        return messaggio +
+        " — errore temporaneo del servizio, non della chiave: " +
+        "riprovato 3 volte senza successo";
+
+    }
+
+
     if(messaggio.includes("429")){
 
         return "quota esaurita: serve una chiave personale, " +
@@ -447,6 +478,110 @@ function spiegaErrore(errore){
 
 
     return messaggio;
+
+
+}
+
+
+
+
+
+
+// TENTATIVI RIPETUTI SUGLI ERRORI TEMPORANEI (5xx)
+
+
+const TENTATIVI_GOOGLE = [
+    { attesa: 0,    extra: "" },
+    { attesa: 1500, extra: "" },
+    { attesa: 2500, extra: "&country=IT" }
+];
+
+
+
+async function googleConTentativi(interrogazione){
+
+
+    let ultimoErrore = null;
+
+
+    for(let i = 0; i < TENTATIVI_GOOGLE.length; i++){
+
+
+        const tentativo = TENTATIVI_GOOGLE[i];
+
+
+        if(tentativo.attesa){
+
+            await pausa(tentativo.attesa);
+
+        }
+
+
+        try {
+
+
+            const dati =
+            await google(interrogazione + tentativo.extra);
+
+
+            if(i > 0){
+
+                ultimaDiagnostica.push(
+                "   (riuscito al tentativo " + (i + 1) +
+                (tentativo.extra ? " con country=IT" : "") + ")"
+                );
+
+            }
+
+
+            return dati;
+
+
+        }
+        catch(errore){
+
+
+            ultimoErrore = errore;
+
+
+            const messaggio = String(errore.message || "");
+
+
+            // si riprova solo sugli errori temporanei del servizio
+            if(!/HTTP 5\d\d/.test(messaggio)){
+
+                throw errore;
+
+            }
+
+
+            ultimaDiagnostica.push(
+            "   (tentativo " + (i + 1) + ": " +
+            messaggio.split(" — ")[0] + ", riprovo)"
+            );
+
+
+        }
+
+
+    }
+
+
+    throw ultimoErrore;
+
+
+}
+
+
+
+function pausa(millisecondi){
+
+
+    return new Promise(function(resolve){
+
+        setTimeout(resolve, millisecondi);
+
+    });
 
 
 }

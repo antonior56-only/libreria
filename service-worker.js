@@ -1,10 +1,10 @@
 /* ===================================
    LA MIA LIBRERIA
-   Service Worker PWA - versione 2
+   Service Worker PWA - versione 3
 =================================== */
 
 
-const CACHE_NAME = "la-mia-libreria-v8";
+const CACHE_NAME = "la-mia-libreria-v11";
 
 
 const FILE_DA_CACHE = [
@@ -134,8 +134,25 @@ self.addEventListener("fetch", function(evento){
     const indirizzo = new URL(richiesta.url);
 
 
-    // le chiamate a Open Library devono essere sempre fresche
-    if(indirizzo.hostname.endsWith("openlibrary.org")){
+    // Le chiamate alle API non passano mai dalla cache:
+    // devono essere sempre fresche e non vanno memorizzate.
+    const DOMINI_SEMPRE_DA_RETE = [
+        "openlibrary.org",
+        "googleapis.com",
+        "books.google.com",
+        "covers.openlibrary.org"
+    ];
+
+
+    const daRete = DOMINI_SEMPRE_DA_RETE.some(function(dominio){
+
+        return indirizzo.hostname === dominio ||
+        indirizzo.hostname.endsWith("." + dominio);
+
+    });
+
+
+    if(daRete){
 
         return;
 

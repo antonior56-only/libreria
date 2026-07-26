@@ -541,17 +541,30 @@ button:focus-visible {
 
     margin:0 auto 10px;
 
+    overflow:hidden;
+
 }
 
+
+/* Niente forzature sulle dimensioni: le calcola la libreria,
+   e se le sovrascriviamo il riquadro di lettura si disallinea
+   rispetto a quello che si vede sullo schermo. */
 
 #lettore video,
 #lettore canvas {
 
-    width:100% !important;
-
-    height:auto !important;
-
     border-radius:10px;
+
+    display:block;
+
+    margin:0 auto;
+
+}
+
+
+#lettore img[alt="Info icon"] {
+
+    display:none;
 
 }
 
