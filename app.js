@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 1.9
+   app.js versione 2.0
 =================================== */
 
 
@@ -2453,11 +2453,24 @@ function controllaPromemoriaBackup(){
     const rinvio = leggiPreferenza("rinvioBackup");
 
 
-    if(rinvio && new Date(rinvio) > new Date()){
+    if(rinvio){
 
-        banner.hidden = true;
 
-        return;
+        const dataRinvio = new Date(rinvio);
+
+
+        // una stringa vuota o non valida non deve entrare nei confronti
+        if(
+            !isNaN(dataRinvio.getTime()) &&
+            dataRinvio > new Date()
+        ){
+
+            banner.hidden = true;
+
+            return;
+
+        }
+
 
     }
 
@@ -2585,7 +2598,13 @@ function esportaBackup(){
     link.remove();
 
 
-    URL.revokeObjectURL(indirizzo);
+    // la revoca immediata puo' interrompere il download su alcuni
+    // browser (Safari e mobile): si aspetta che sia partito
+    setTimeout(function(){
+
+        URL.revokeObjectURL(indirizzo);
+
+    }, 1000);
 
 
 

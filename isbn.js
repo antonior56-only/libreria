@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN e titolo - versione 2.2
+   Ricerca ISBN e titolo - versione 2.3
    Quattro strategie in cascata + diagnostica visibile
 =================================== */
 
@@ -1646,54 +1646,3 @@ function usaRisultato(indice){
 
 
 
-
-
-
-// INVIO DA TASTIERA NEI DUE CAMPI DI RICERCA
-
-
-document.addEventListener("DOMContentLoaded", function(){
-
-
-    const campoIsbn = document.getElementById("isbn");
-
-
-    if(campoIsbn){
-
-        campoIsbn.addEventListener("keydown", function(evento){
-
-            if(evento.key === "Enter"){
-
-                evento.preventDefault();
-
-                cercaISBN();
-
-            }
-
-        });
-
-    }
-
-
-
-    const campoTitolo = document.getElementById("titoloRicerca");
-
-
-    if(campoTitolo){
-
-        campoTitolo.addEventListener("keydown", function(evento){
-
-            if(evento.key === "Enter"){
-
-                evento.preventDefault();
-
-                cercaPerTitolo();
-
-            }
-
-        });
-
-    }
-
-
-});
