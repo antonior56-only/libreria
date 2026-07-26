@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 1.6
+   app.js versione 1.8
 =================================== */
 
 
@@ -67,6 +67,8 @@ document.addEventListener("DOMContentLoaded", async function(){
     ascolta("salvaLibro",    "click",  salvaLibro);
     ascolta("annullaModifica","click", annullaModifica);
     ascolta("cercaISBN",     "click",  cercaISBN);
+    ascolta("cercaTitolo",   "click",  cercaPerTitolo);
+    ascolta("risultatiRicerca","click", gestisciClickRisultati);
     ascolta("avviaScanner",  "click",  avviaScanner);
     ascolta("ricerca",       "input",  applicaFiltri);
     ascolta("ordinamento",   "change", applicaFiltri);
@@ -2209,8 +2211,8 @@ function chiaveGoogle(){
 
 
     // chiave condivisa scritta in isbn.js, se presente
-    return (typeof CHIAVE_PREDEFINITA === "string")
-    ? CHIAVE_PREDEFINITA.trim()
+    return (typeof chiavePredefinita === "function")
+    ? chiavePredefinita()
     : "";
 
 

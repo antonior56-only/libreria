@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   Ricerca ISBN - versione 1.9
+   Ricerca ISBN e titolo - versione 2.1
    Quattro strategie in cascata + diagnostica visibile
 =================================== */
 
@@ -8,26 +8,85 @@
 /* ---------------------------------------------------------------
    CHIAVE CONDIVISA
 
-   Incolla qui sotto la tua chiave Google Books per farla usare a
-   chiunque apra l'app dal tuo sito, senza che debba configurare
-   nulla. Lasciala vuota se preferisci che ognuno metta la propria
-   nelle Impostazioni.
+   Serve perché chi apre l'app dal tuo sito abbia la ricerca ISBN
+   funzionante senza configurare nulla.
 
-   Se la usi, nella console Google Cloud imposta:
+   COME PREPARARLA
+   1. apri una qualsiasi pagina nel browser e premi F12
+   2. nella Console scrivi:  btoa("LA-TUA-CHIAVE")
+   3. copia il risultato e spezzalo a metà
+   4. incolla le due metà qui sotto
+
+   La codifica NON è sicurezza: serve solo a non far scattare i
+   robot che setacciano GitHub cercando stringhe "AIza...".
+   La protezione vera è la restrizione nella console Google Cloud:
      - Restrizioni applicazioni: Siti web
        -> https://antonior56-only.github.io/*
      - Restrizioni API: solo Books API
      - Nessuna fatturazione attiva sul progetto
 
-   Una chiave personale inserita in Impostazioni ha comunque
+   Una chiave personale inserita nelle Impostazioni ha comunque
    la precedenza su questa.
 --------------------------------------------------------------- */
 
+const CHIAVE_PARTE_1 = "";
+
+const CHIAVE_PARTE_2 = "";
+
+
+// in alternativa, chiave in chiaro (se preferisci la semplicità)
 const CHIAVE_PREDEFINITA = "";
 
 
 
+function chiavePredefinita(){
+
+
+    const chiara = String(CHIAVE_PREDEFINITA || "").trim();
+
+
+    if(chiara){
+
+        return chiara;
+
+    }
+
+
+    const codificata =
+    String(CHIAVE_PARTE_1 || "") + String(CHIAVE_PARTE_2 || "");
+
+
+    if(!codificata){
+
+        return "";
+
+    }
+
+
+    try {
+
+        return atob(codificata.trim()).trim();
+
+    }
+    catch(errore){
+
+        console.warn(
+        "Chiave condivisa non decodificabile: controlla le due metà",
+        errore
+        );
+
+        return "";
+
+    }
+
+
+}
+
+
+
 let ultimaDiagnostica = [];
+
+let risultatiTrovati = [];
 
 
 
@@ -680,7 +739,31 @@ async function google(interrogazione){
     }
 
 
-    const info = json.items[0].volumeInfo || {};
+    return mappaVolumeGoogle(json.items[0]);
+
+
+}
+
+
+
+function mappaVolumeGoogle(volume){
+
+
+    const info = (volume && volume.volumeInfo) || {};
+
+
+    const identificativi = info.industryIdentifiers || [];
+
+
+    function codice(tipo){
+
+        const voce = identificativi.find(function(i){
+            return i.type === tipo;
+        });
+
+        return voce ? voce.identifier : "";
+
+    }
 
 
     return {
@@ -701,7 +784,9 @@ async function google(interrogazione){
 
         pagine: info.pageCount || "",
 
-        soggetti: (info.categories || []).slice(0, 3).join(", ")
+        soggetti: (info.categories || []).slice(0, 3).join(", "),
+
+        isbn: codice("ISBN_13") || codice("ISBN_10") || ""
 
     };
 
@@ -874,10 +959,223 @@ async function openLibraryRicerca(isbn){
 
 
 
+// RICERCA PER TITOLO
+
+
+async function cercaPerTitolo(testo){
+
+
+    ultimaDiagnostica = [];
+
+
+    const interrogazione = encodeURIComponent(testo.trim());
+
+
+    if(chiaveGoogle && typeof chiaveGoogle === "function" && chiaveGoogle()){
+
+
+        try {
+
+
+            const risultati =
+            await titoloDaGoogle(interrogazione);
+
+
+            if(risultati.length){
+
+                ultimaDiagnostica.push(
+                "Google Books: " + risultati.length + " risultati ✅"
+                );
+
+                return { risultati: risultati, fonte: "Google Books" };
+
+            }
+
+
+            ultimaDiagnostica.push("Google Books: nessun risultato");
+
+
+        }
+        catch(errore){
+
+            ultimaDiagnostica.push(
+            "Google Books: " + spiegaErrore(errore)
+            );
+
+        }
+
+
+    }
+    else {
+
+        ultimaDiagnostica.push(
+        "Google Books: saltato (nessuna chiave configurata)"
+        );
+
+    }
+
+
+
+    try {
+
+
+        const risultati =
+        await titoloDaOpenLibrary(interrogazione);
+
+
+        if(risultati.length){
+
+            ultimaDiagnostica.push(
+            "Open Library: " + risultati.length + " risultati ✅"
+            );
+
+            return { risultati: risultati, fonte: "Open Library" };
+
+        }
+
+
+        ultimaDiagnostica.push("Open Library: nessun risultato");
+
+
+    }
+    catch(errore){
+
+        ultimaDiagnostica.push(
+        "Open Library: " + spiegaErrore(errore)
+        );
+
+    }
+
+
+
+    return { risultati: [], fonte: "" };
+
+
+}
+
+
+
+async function titoloDaGoogle(interrogazione){
+
+
+    const chiave = chiaveGoogle();
+
+
+    const risposta = await fetch(
+        "https://www.googleapis.com/books/v1/volumes?q=" +
+        interrogazione +
+        "&maxResults=12&printType=books" +
+        "&key=" + encodeURIComponent(chiave)
+    );
+
+
+    if(!risposta.ok){
+
+        throw new Error(await descriviRisposta(risposta));
+
+    }
+
+
+    const json = await risposta.json();
+
+
+    if(!json.items){
+
+        return [];
+
+    }
+
+
+    return json.items
+    .map(mappaVolumeGoogle)
+    .filter(function(v){ return v.titolo; });
+
+
+}
+
+
+
+async function titoloDaOpenLibrary(interrogazione){
+
+
+    const risposta = await fetch(
+        "https://openlibrary.org/search.json?q=" +
+        interrogazione + "&limit=12"
+    );
+
+
+    if(!risposta.ok){
+
+        throw new Error(await descriviRisposta(risposta));
+
+    }
+
+
+    const json = await risposta.json();
+
+
+    if(!json.docs){
+
+        return [];
+
+    }
+
+
+    return json.docs.map(function(doc){
+
+
+        return {
+
+            titolo: doc.title || "",
+
+            autori: (doc.author_name || []).join(", "),
+
+            anno: doc.first_publish_year
+            ? String(doc.first_publish_year) : "",
+
+            editore: (doc.publisher || [])[0] || "",
+
+            copertina: doc.cover_i
+            ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg"
+            : "",
+
+            pagine: doc.number_of_pages_median || "",
+
+            soggetti: (doc.subject || []).slice(0, 3).join(", "),
+
+            isbn: (doc.isbn || [])[0] || ""
+
+        };
+
+
+    })
+    .filter(function(v){ return v.titolo; });
+
+
+}
+
+
+
+
+
+
 // COMPILAZIONE CAMPI
 
 
 function compilaModulo(dati){
+
+
+    if(dati.isbn){
+
+        const campoIsbn = document.getElementById("isbn");
+
+        if(campoIsbn && !campoIsbn.value.trim()){
+
+            campoIsbn.value = normalizzaIsbn(dati.isbn) || dati.isbn;
+
+        }
+
+    }
 
 
     if(dati.titolo){
@@ -960,6 +1258,544 @@ function aggiungiNota(testo){
 
 
     campo.value += testo;
+
+
+}
+
+
+
+
+
+
+/* ===================================
+   RICERCA PER TITOLO
+=================================== */
+
+
+async function cercaPerTitolo(){
+
+
+    const campo = document.getElementById("titoloRicerca");
+
+    const testo = String(campo.value || "").trim();
+
+
+    if(testo.length < 3){
+
+        alert("Scrivi almeno tre lettere del titolo.");
+
+        campo.focus();
+
+        return;
+
+    }
+
+
+
+    const bottone = document.getElementById("cercaTitolo");
+
+    const etichetta = bottone.textContent;
+
+    bottone.disabled = true;
+
+    bottone.textContent = "⏳ Ricerca in corso...";
+
+
+    ultimaDiagnostica = [];
+
+    svuotaRisultati();
+
+
+
+    try {
+
+
+        let trovati = [];
+
+
+        try {
+
+            trovati = await googleElenco(testo);
+
+            ultimaDiagnostica.push(
+            "Google Books: " + trovati.length + " risultati"
+            );
+
+        }
+        catch(errore){
+
+            ultimaDiagnostica.push(
+            "Google Books: " + spiegaErrore(errore)
+            );
+
+        }
+
+
+
+        if(trovati.length === 0){
+
+
+            try {
+
+                trovati = await openLibraryElenco(testo);
+
+                ultimaDiagnostica.push(
+                "Open Library: " + trovati.length + " risultati"
+                );
+
+            }
+            catch(errore){
+
+                ultimaDiagnostica.push(
+                "Open Library: " + spiegaErrore(errore)
+                );
+
+            }
+
+
+        }
+
+
+
+        risultatiTrovati = scartaDoppioni(trovati);
+
+
+        mostraRisultati();
+
+
+        scriviEsito(riepilogoDiagnostica());
+
+
+        if(risultatiTrovati.length === 0){
+
+            alert(
+            "Nessun libro trovato con questo titolo.\n\n" +
+            riepilogoDiagnostica()
+            );
+
+        }
+
+
+    }
+    finally {
+
+
+        bottone.disabled = false;
+
+        bottone.textContent = etichetta;
+
+
+    }
+
+
+}
+
+
+
+
+
+
+function scartaDoppioni(elenco){
+
+
+    const viste = new Set();
+
+
+    return elenco.filter(function(libro){
+
+
+        const chiave =
+        String(libro.titolo || "").toLowerCase().trim() + "|" +
+        String(libro.autori || "").toLowerCase().trim();
+
+
+        if(!libro.titolo || viste.has(chiave)){
+
+            return false;
+
+        }
+
+
+        viste.add(chiave);
+
+        return true;
+
+
+    }).slice(0, 8);
+
+
+}
+
+
+
+
+
+
+// ELENCO DA GOOGLE BOOKS
+
+
+async function googleElenco(testo){
+
+
+    const chiave =
+    (typeof chiaveGoogle === "function") ? chiaveGoogle() : "";
+
+
+    if(!chiave){
+
+        throw new Error("SENZA_CHIAVE");
+
+    }
+
+
+
+    const risposta = await fetch(
+        "https://www.googleapis.com/books/v1/volumes?q=" +
+        encodeURIComponent(testo) +
+        "&maxResults=8&printType=books&key=" +
+        encodeURIComponent(chiave)
+    );
+
+
+    if(!risposta.ok){
+
+        throw new Error(await descriviRisposta(risposta));
+
+    }
+
+
+    const json = await risposta.json();
+
+
+    if(!json.items){
+
+        return [];
+
+    }
+
+
+
+    return json.items.map(function(voce){
+
+
+        const info = voce.volumeInfo || {};
+
+
+        const codici = info.industryIdentifiers || [];
+
+
+        const isbn13 =
+        (codici.find(function(c){ return c.type === "ISBN_13"; }) || {})
+        .identifier || "";
+
+
+        const isbn10 =
+        (codici.find(function(c){ return c.type === "ISBN_10"; }) || {})
+        .identifier || "";
+
+
+
+        return {
+
+            titolo:
+            info.subtitle
+            ? (info.title || "") + ". " + info.subtitle
+            : (info.title || ""),
+
+            autori: (info.authors || []).join(", "),
+
+            anno:
+            String(info.publishedDate || "").match(/\d{4}/)?.[0] || "",
+
+            editore: info.publisher || "",
+
+            copertina: miglioreCopertina(info.imageLinks),
+
+            pagine: info.pageCount || "",
+
+            soggetti: (info.categories || []).slice(0, 3).join(", "),
+
+            isbn: isbn13 || isbn10,
+
+            fonte: "Google Books"
+
+        };
+
+
+    });
+
+
+}
+
+
+
+
+
+
+// ELENCO DA OPEN LIBRARY
+
+
+async function openLibraryElenco(testo){
+
+
+    const risposta = await fetch(
+        "https://openlibrary.org/search.json?q=" +
+        encodeURIComponent(testo) + "&limit=8"
+    );
+
+
+    if(!risposta.ok){
+
+        throw new Error(await descriviRisposta(risposta));
+
+    }
+
+
+    const json = await risposta.json();
+
+
+    if(!json.docs){
+
+        return [];
+
+    }
+
+
+
+    return json.docs.map(function(doc){
+
+
+        return {
+
+            titolo: doc.title || "",
+
+            autori: (doc.author_name || []).join(", "),
+
+            anno:
+            doc.first_publish_year ? String(doc.first_publish_year) : "",
+
+            editore: (doc.publisher || [])[0] || "",
+
+            copertina:
+            doc.cover_i
+            ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg"
+            : "",
+
+            pagine: doc.number_of_pages_median || "",
+
+            soggetti: (doc.subject || []).slice(0, 3).join(", "),
+
+            isbn: (doc.isbn || [])[0] || "",
+
+            fonte: "Open Library"
+
+        };
+
+
+    });
+
+
+}
+
+
+
+
+
+
+// ELENCO A SCHERMO
+
+
+function proteggi(testo){
+
+
+    return (typeof testoSicuro === "function")
+    ? testoSicuro(testo)
+    : String(testo ?? "");
+
+
+}
+
+
+
+function mostraRisultati(){
+
+
+    const riquadro = document.getElementById("risultatiRicerca");
+
+
+    if(!riquadro){
+
+        return;
+
+    }
+
+
+    if(risultatiTrovati.length === 0){
+
+        riquadro.hidden = true;
+
+        riquadro.innerHTML = "";
+
+        return;
+
+    }
+
+
+
+    riquadro.hidden = false;
+
+
+    riquadro.innerHTML =
+
+    "<p class='contatore'>" + risultatiTrovati.length +
+    " risultati da " + proteggi(risultatiTrovati[0].fonte) +
+    " — scegli quello giusto:</p>" +
+
+    risultatiTrovati.map(function(libro, indice){
+
+
+        const dettagli =
+        [libro.anno, libro.editore, libro.pagine ? libro.pagine + " pagine" : ""]
+        .filter(function(v){ return v; })
+        .map(proteggi)
+        .join(" · ");
+
+
+        return `<div class="risultato">
+
+        ${
+        /^https?:\/\//i.test(libro.copertina)
+        ? `<img src="${proteggi(libro.copertina)}" alt="" width="46">`
+        : "<span class='senza-copertina'>📕</span>"
+        }
+
+        <div class="dati-risultato">
+
+            <strong>${proteggi(libro.titolo)}</strong>
+
+            <span>${proteggi(libro.autori) || "autore non indicato"}</span>
+
+            <span class="contatore">${dettagli}</span>
+
+            ${libro.isbn ? `<span class="contatore">ISBN ${proteggi(libro.isbn)}</span>` : ""}
+
+        </div>
+
+        <button type="button" data-indice="${indice}">Usa questo</button>
+
+        </div>`;
+
+
+    }).join("");
+
+
+}
+
+
+
+function svuotaRisultati(){
+
+
+    risultatiTrovati = [];
+
+    mostraRisultati();
+
+
+}
+
+
+
+function gestisciClickRisultati(evento){
+
+
+    const bottone = evento.target.closest("button[data-indice]");
+
+
+    if(!bottone){
+
+        return;
+
+    }
+
+
+    usaRisultato(Number(bottone.dataset.indice));
+
+
+}
+
+
+
+function usaRisultato(indice){
+
+
+    const libro = risultatiTrovati[indice];
+
+
+    if(!libro){
+
+        return;
+
+    }
+
+
+
+    if(libro.isbn && typeof trovaDuplicati === "function"){
+
+
+        const doppi = trovaDuplicati(libro.isbn, null);
+
+
+        if(doppi.length){
+
+
+            const procedi = confirm(
+            "Attenzione, in biblioteca c'è già:\n\n" +
+            descriviDuplicato(doppi[0]) +
+            "\n\nCompilare lo stesso il modulo?"
+            );
+
+
+            if(!procedi){
+
+                return;
+
+            }
+
+
+        }
+
+
+    }
+
+
+
+    if(libro.isbn){
+
+        document.getElementById("isbn").value =
+        normalizzaIsbn(libro.isbn) || libro.isbn;
+
+    }
+
+
+    compilaModulo({
+        titolo:    libro.titolo,
+        autori:    libro.autori,
+        anno:      libro.anno,
+        copertina: libro.copertina,
+        editore:   libro.editore,
+        pagine:    libro.pagine,
+        soggetti:  libro.soggetti
+    });
+
+
+    svuotaRisultati();
+
+
+    document.getElementById("titoloRicerca").value = "";
+
+
+    document.getElementById("titolo")
+    .scrollIntoView({ behavior: "smooth", block: "center" });
 
 
 }

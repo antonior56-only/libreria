@@ -161,6 +161,21 @@ Abbandonati <span class="chip-conteggio">0</span>
 
 
 
+<label for="ricercaTitolo">Cerca per titolo o autore</label>
+
+<input
+id="ricercaTitolo"
+type="search"
+placeholder="Es. il nome della rosa eco"
+>
+
+<button type="button" id="cercaTitolo">
+🔎 Cerca per titolo
+</button>
+
+<div id="risultatiTitolo" class="risultati" hidden></div>
+
+
 <label for="isbn">ISBN</label>
 
 <input
@@ -178,6 +193,27 @@ placeholder="Inserisci ISBN"
 📷 Scansiona ISBN
 </button>
 
+
+<h3>🔎 Oppure cerca per titolo</h3>
+
+<label for="titoloRicerca">
+Titolo, e autore se lo conosci
+</label>
+
+<input
+id="titoloRicerca"
+type="text"
+placeholder="Es. Il nome della rosa Eco"
+>
+
+<button type="button" id="cercaTitolo">
+🔎 Cerca per titolo
+</button>
+
+<div id="risultatiRicerca" class="risultati" hidden></div>
+
+
+<h3>📷 Scansione</h3>
 
 <label class="riga-interruttore">
 
@@ -214,6 +250,27 @@ I libri in coda usano la posizione indicata qui sotto nel modulo
 </button>
 
 </div>
+
+
+
+<h3>🔎 Oppure cerca per titolo</h3>
+
+<p class="contatore">
+Per i libri senza codice a barre leggibile. Scrivi titolo e, se lo sai,
+anche l'autore.
+</p>
+
+<input
+id="ricercaTitolo"
+type="text"
+placeholder="Es. Il nome della rosa Eco"
+>
+
+<button type="button" id="cercaTitolo">
+🔎 Cerca per titolo
+</button>
+
+<div id="risultatiTitolo" class="risultati" hidden></div>
 
 
 
