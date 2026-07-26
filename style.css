@@ -504,7 +504,9 @@ button:focus-visible {
 
     display:flex;
 
-    gap:10px;
+    flex-wrap:wrap;
+
+    gap:8px;
 
     margin-top:12px;
 
@@ -512,6 +514,10 @@ button:focus-visible {
 
 
 .azioni-libro button {
+
+    flex:1 1 45%;
+
+    min-width:120px;
 
     font-size:15px;
 

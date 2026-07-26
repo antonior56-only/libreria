@@ -1,6 +1,6 @@
 /* ===================================
    LA MIA LIBRERIA
-   app.js versione 2.0
+   app.js versione 2.1
 =================================== */
 
 
@@ -17,6 +17,10 @@ let filtroPosizione = null;
 let coda = [];
 
 let elaborazioneInCorso = false;
+
+let attesaRicerca = null;
+
+let promptInstallazione = null;
 
 
 const GIORNI_PROMEMORIA_BACKUP = 30;
@@ -38,6 +42,43 @@ const CAMPI_MODULO = [
     "dataPrestito",
     "note"
 ];
+
+
+
+// L'evento di installazione puo' arrivare prima del caricamento
+// completo: il gestore va registrato immediatamente.
+window.addEventListener("beforeinstallprompt", function(evento){
+
+    evento.preventDefault();
+
+    promptInstallazione = evento;
+
+    const bottone = document.getElementById("installaApp");
+
+    if(bottone){
+
+        bottone.hidden = false;
+
+    }
+
+});
+
+
+window.addEventListener("appinstalled", function(){
+
+    promptInstallazione = null;
+
+    const bottone = document.getElementById("installaApp");
+
+    if(bottone){
+
+        bottone.hidden = true;
+
+    }
+
+    mostraStatoInstallazione("App installata correttamente.");
+
+});
 
 
 
@@ -75,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async function(){
     invioAvvia("isbn", cercaISBN);
     invioAvvia("titoloRicerca", cercaPerTitolo);
     ascolta("avviaScanner",  "click",  avviaScanner);
-    ascolta("ricerca",       "input",  applicaFiltri);
+    ascolta("ricerca",       "input",  ricercaConAttesa);
     ascolta("ordinamento",   "change", applicaFiltri);
     ascolta("esportaBackup", "click",  esportaBackup);
     ascolta("importaBackup", "change", importaBackup);
@@ -92,9 +133,12 @@ document.addEventListener("DOMContentLoaded", async function(){
     ascolta("scaricaCopertine","click", scaricaCopertineMancanti);
     ascolta("salvaChiave",   "click",  salvaChiaveGoogle);
     ascolta("provaChiave",   "click",  provaChiaveGoogle);
+    ascolta("installaApp",   "click",  installaApp);
 
 
     mostraStatoChiave();
+
+    mostraStatoInstallazione();
 
 
 });
@@ -145,6 +189,320 @@ function ascolta(id, evento, funzione){
     else {
 
         console.warn("Elemento assente nell'HTML:", id);
+
+    }
+
+
+}
+
+
+
+
+
+
+// RICERCA CON PICCOLA ATTESA
+// senza attesa l'elenco viene ricostruito a ogni tasto premuto
+
+
+function ricercaConAttesa(){
+
+
+    clearTimeout(attesaRicerca);
+
+
+    attesaRicerca = setTimeout(applicaFiltri, 200);
+
+
+}
+
+
+
+
+
+
+// CONFRONTO DI TESTO SENZA ACCENTI NE' MAIUSCOLE
+
+
+function normalizzaTesto(valore){
+
+
+    return String(valore ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+
+}
+
+
+
+
+
+
+// INSTALLAZIONE SUL DISPOSITIVO
+
+
+function appGiaInstallata(){
+
+
+    return (
+        (window.matchMedia &&
+         window.matchMedia("(display-mode: standalone)").matches) ||
+        window.navigator.standalone === true
+    );
+
+
+}
+
+
+
+function sistemaApple(){
+
+
+    const agente = String(navigator.userAgent || "");
+
+
+    return /iPad|iPhone|iPod/.test(agente) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+
+}
+
+
+
+function mostraStatoInstallazione(messaggio){
+
+
+    const riga = document.getElementById("statoInstallazione");
+
+
+    if(!riga){
+
+        return;
+
+    }
+
+
+    if(messaggio){
+
+        riga.textContent = messaggio;
+
+        return;
+
+    }
+
+
+    if(appGiaInstallata()){
+
+        riga.textContent = "L'app risulta gia' installata su questo dispositivo.";
+
+        return;
+
+    }
+
+
+    if(sistemaApple()){
+
+        riga.textContent =
+        "Su iPhone e iPad: apri l'app in Safari, premi il pulsante di " +
+        "condivisione (il quadrato con la freccia) e scegli «Aggiungi a Home».";
+
+        return;
+
+    }
+
+
+    if(promptInstallazione){
+
+        riga.textContent =
+        "Premi il pulsante qui sopra per installarla.";
+
+        return;
+
+    }
+
+
+    riga.textContent =
+    "Se il pulsante non compare, usa il menu del browser (tre puntini) " +
+    "e scegli «Installa app» oppure «Aggiungi a schermata Home».";
+
+
+}
+
+
+
+async function installaApp(){
+
+
+    if(!promptInstallazione){
+
+        mostraStatoInstallazione();
+
+        return;
+
+    }
+
+
+    try {
+
+
+        promptInstallazione.prompt();
+
+
+        const esito = await promptInstallazione.userChoice;
+
+
+        mostraStatoInstallazione(
+            esito && esito.outcome === "accepted"
+            ? "Installazione avviata."
+            : "Installazione annullata: puoi riprovare quando vuoi."
+        );
+
+
+    }
+    catch(errore){
+
+        console.warn("Installazione non riuscita", errore);
+
+        mostraStatoInstallazione(
+        "Installazione non disponibile in questo momento."
+        );
+
+    }
+    finally {
+
+
+        promptInstallazione = null;
+
+
+        const bottone = document.getElementById("installaApp");
+
+
+        if(bottone){
+
+            bottone.hidden = true;
+
+        }
+
+
+    }
+
+
+}
+
+
+
+
+
+
+// CONDIVISIONE DI UN LIBRO
+
+
+function testoCondivisione(libro){
+
+
+    const righe = [libro.titolo];
+
+
+    if(libro.autore){
+
+        righe.push("di " + libro.autore);
+
+    }
+
+
+    if(libro.anno){
+
+        righe.push(String(libro.anno));
+
+    }
+
+
+    if(libro.isbn){
+
+        righe.push("ISBN " + libro.isbn);
+
+    }
+
+
+    if(inPrestito(libro)){
+
+        righe.push("in prestito a " + libro.prestatoA);
+
+    }
+
+
+    return righe.join(" - ");
+
+
+}
+
+
+
+async function condividiLibro(id){
+
+
+    const libro = libri.find(function(l){ return l.id === id; });
+
+
+    if(!libro){
+
+        return;
+
+    }
+
+
+    const testo = testoCondivisione(libro);
+
+
+
+    if(navigator.share){
+
+
+        try {
+
+            await navigator.share({
+                title: libro.titolo,
+                text: testo
+            });
+
+            return;
+
+        }
+        catch(errore){
+
+
+            // l'utente ha annullato: non serve alcun ripiego
+            if(errore && errore.name === "AbortError"){
+
+                return;
+
+            }
+
+
+            console.warn("Condivisione non riuscita", errore);
+
+
+        }
+
+
+    }
+
+
+
+    // ripiego: copia negli appunti
+    try {
+
+        await navigator.clipboard.writeText(testo);
+
+        alert("Copiato negli appunti:\n\n" + testo);
+
+    }
+    catch(errore){
+
+        alert("Dati del libro:\n\n" + testo);
 
     }
 
@@ -879,7 +1237,8 @@ function mostraLibri(lista){
 
         ${
         copertina
-        ? `<img src="${copertina}" alt="Copertina" width="80">`
+        ? `<img src="${copertina}" alt="Copertina" width="80"
+             loading="lazy" decoding="async">`
         : "<span class=\"senza-copertina\">📖</span>"
         }
 
@@ -912,6 +1271,10 @@ function mostraLibri(lista){
 
             <button type="button" data-azione="modifica" data-id="${libro.id}">
             ✏ Modifica
+            </button>
+
+            <button type="button" data-azione="condividi" data-id="${libro.id}">
+            📤 Condividi
             </button>
 
             ${
@@ -1060,6 +1423,13 @@ function gestisciClickLista(evento){
     if(bottone.dataset.azione === "restituito"){
 
         segnaRestituito(id);
+
+    }
+
+
+    if(bottone.dataset.azione === "condividi"){
+
+        condividiLibro(id);
 
     }
 
@@ -1352,32 +1722,37 @@ function applicaFiltri(){
 
 
 
-    const testo = valore("ricerca").toLowerCase();
+    // ogni parola digitata deve comparire da qualche parte, in
+    // qualunque ordine e senza badare ad accenti o maiuscole
+    const parole =
+    normalizzaTesto(valore("ricerca"))
+    .split(" ")
+    .filter(function(v){ return v; });
 
 
-    if(testo){
+    if(parole.length){
 
 
         risultato = risultato.filter(function(libro){
 
 
-            const campi = [
+            const contenuto = normalizzaTesto([
                 libro.titolo,
                 libro.autore,
                 libro.genere,
+                libro.anno,
                 libro.isbn,
                 libro.stanza,
                 libro.libreria,
                 libro.scaffale,
-                libro.prestatoA
-            ];
+                libro.prestatoA,
+                libro.note
+            ].join(" "));
 
 
-            return campi.some(function(campo){
+            return parole.every(function(parola){
 
-                return String(campo ?? "")
-                .toLowerCase()
-                .includes(testo);
+                return contenuto.includes(parola);
 
             });
 
@@ -2265,6 +2640,8 @@ function salvaChiaveGoogle(){
 
 
     mostraStatoChiave();
+
+    mostraStatoInstallazione();
 
 
     alert(
